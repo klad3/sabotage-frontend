@@ -1,12 +1,21 @@
-import { Component, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './shared/components/header/header.component';
+import { FooterComponent } from './shared/components/footer/footer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterOutlet, HeaderComponent, FooterComponent],
+  template: `
+    <app-header />
+    <router-outlet />
+    <app-footer />
+  `,
+  host: {
+    class: 'flex flex-col min-h-screen'
+  }
 })
 export class App {
-  protected readonly title = signal('sabotage-frontend');
+  title = 'Sabotage';
 }

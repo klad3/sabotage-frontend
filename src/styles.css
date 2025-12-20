@@ -1,3 +1,259 @@
-/* You can add global styles to this file, and also import other style files */
+/* Sabotage Frontend - Global Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 
 @import "tailwindcss";
+
+/* Custom Theme Configuration */
+@theme {
+  /* Colors - Sabotage Dark Theme */
+  --color-sabotage-black: #0d0d0d;
+  --color-sabotage-dark: #1a1a1a;
+  --color-sabotage-gray: #2a2a2a;
+  --color-sabotage-border: #333333;
+  --color-sabotage-light: #f2f2f2;
+  --color-sabotage-muted: #bbbbbb;
+  --color-sabotage-subtle: #888888;
+  --color-sabotage-accent: #ff3333;
+  --color-sabotage-success: #4CAF50;
+  --color-sabotage-warning: #ff9800;
+
+  /* Font Families */
+  --font-sarabun: 'Sarabun', sans-serif;
+  --font-space: 'Space Grotesk', sans-serif;
+  --font-baloo: 'Baloo 2', cursive;
+  --font-rubik: 'Rubik', sans-serif;
+
+  /* Custom Spacing */
+  --spacing-section: 80px;
+  --spacing-section-mobile: 40px;
+
+  /* Animation Durations */
+  --duration-fast: 0.3s;
+  --duration-normal: 0.4s;
+  --duration-slow: 0.5s;
+}
+
+/* Base Styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sarabun);
+    background-color: var(--color-sabotage-black);
+    color: var(--color-sabotage-light);
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-space);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--duration-fast) ease;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: var(--font-sarabun);
+    transition: all var(--duration-fast) ease;
+  }
+
+  input, select, textarea {
+    font-family: var(--font-sarabun);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(90deg, #ffffff, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(90deg, #ffffff, #ffffff) 1;
+  }
+
+  .hover-lift {
+    transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(242, 242, 242, 0.2);
+  }
+
+  .hover-scale {
+    transition: transform var(--duration-fast) ease;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .fade-init {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(12px);
+  }
+
+  .fade-in {
+    animation: fadeBlurUp 1s ease forwards;
+  }
+
+  .slide-in {
+    animation: slideIn 1s ease;
+  }
+
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+
+  .badge-pulse {
+    animation: badgePulse 2s infinite;
+  }
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(242, 242, 242, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .shimmer:hover::before {
+    left: 100%;
+  }
+
+  .nav-link-underline {
+    position: relative;
+  }
+
+  .nav-link-underline::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -6px;
+    left: 50%;
+    background: linear-gradient(90deg, #ffffff, #ffffff);
+    transform: translateX(-50%);
+    transition: width 0.4s ease;
+  }
+
+  .nav-link-underline:hover::after {
+    width: 100%;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeBlurUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-sabotage-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-sabotage-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sabotage-muted);
+}
+
+/* Focus Styles for Accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-sabotage-light);
+  outline-offset: 2px;
+}
+
+/* Selection Styles */
+::selection {
+  background: var(--color-sabotage-light);
+  color: var(--color-sabotage-black);
+}
