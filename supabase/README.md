@@ -87,6 +87,12 @@ export const environment = {
 2. Deberías ver las tablas: `categories`, `products`, `discount_codes`, `subscribers`, `orders`, `site_config`
 3. Verifica que `categories` y `discount_codes` tienen datos
 
+### Paso 3.5: Crear Tabla de Banners (Carrusel)
+1. Haz clic en **"New query"**
+2. Copia y pega TODO el contenido de: `supabase/05_banners_table.sql`
+3. Haz clic en **"Run"**
+4. Esta tabla permite gestionar el carrusel de la página principal con imágenes para desktop, tablet y mobile
+
 ---
 
 ## 4. Configurar Storage
@@ -104,6 +110,15 @@ export const environment = {
 2. Haz clic en **"New query"**
 3. Copia y pega TODO el contenido de: `supabase/04_storage_policies.sql`
 4. Haz clic en **"Run"**
+
+### Paso 4.3: Crear Bucket para Banners
+1. Ve a **Storage**
+2. Haz clic en **"New bucket"**
+3. Configura:
+   - **Name:** `banners`
+   - ✅ Marca la opción **"Public bucket"**
+4. Haz clic en **"Create bucket"**
+5. Este bucket almacenará las imágenes del carrusel (desktop: 1920x720, tablet: 1024x768, mobile: 400x600)**
 
 ---
 
@@ -230,10 +245,11 @@ export const environment = {
 
 ```
 supabase/
-├── 01_create_tables.sql    # Estructura de tablas
-├── 02_seed_data.sql        # Datos iniciales
+├── 01_create_tables.sql    # Estructura de tablas principales
+├── 02_seed_data.sql        # Datos iniciales (categorías, descuentos)
 ├── 03_rls_policies.sql     # Políticas de seguridad
-└── 04_storage_policies.sql # Políticas de storage
+├── 04_storage_policies.sql # Políticas de storage
+└── 05_banners_table.sql    # Tabla de banners para carrusel
 ```
 
 ---
