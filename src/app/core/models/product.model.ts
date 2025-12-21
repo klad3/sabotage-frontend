@@ -113,3 +113,109 @@ export const DISCOUNT_CODES: Record<string, number> = {
     'PRIMERACOMPRA': 15,
     'VERANO2024': 20
 };
+
+// ============================================
+// Supabase Database Interfaces
+// ============================================
+
+export interface DbProduct {
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    category_id: string | null;
+    type: 'simple' | 'personalizado';
+    color: string | null;
+    theme: string | null;
+    sizes: string[];
+    image_url: string | null;
+    in_stock: boolean;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    category?: DbCategory;
+}
+
+export interface DbCategory {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    display_order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbDiscountCode {
+    id: string;
+    code: string;
+    percentage: number;
+    is_active: boolean;
+    usage_limit: number | null;
+    usage_count: number;
+    expires_at: string | null;
+    created_at: string;
+}
+
+export interface DbSubscriber {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    age: number | null;
+    phone: string | null;
+    country: string | null;
+    district: string | null;
+    nationality: string | null;
+    comments: string | null;
+    created_at: string;
+}
+
+export interface DbOrder {
+    id: string;
+    order_number: string;
+    customer_name: string;
+    customer_email: string | null;
+    customer_phone: string;
+    shipping_address: string | null;
+    items: CartItem[];
+    subtotal: number;
+    shipping: number;
+    discount_code: string | null;
+    discount_amount: number;
+    total: number;
+    status: OrderStatus;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface DbSiteConfig {
+    id: string;
+    key: string;
+    value: Record<string, unknown>;
+    updated_at: string;
+}
+
+// Helper function to convert DB product to frontend Product
+export function dbProductToProduct(dbProduct: DbProduct, categorySlug?: string): Product {
+    return {
+        id: dbProduct.id,
+        name: dbProduct.name,
+        description: dbProduct.description || '',
+        price: dbProduct.price,
+        category: (categorySlug as 'oversize' | 'clasico') ||
+            (dbProduct.category?.slug as 'oversize' | 'clasico') || 'oversize',
+        type: dbProduct.type,
+        color: dbProduct.color || '',
+        theme: dbProduct.theme || '',
+        sizes: dbProduct.sizes || [],
+        imageUrl: dbProduct.image_url || '',
+        inStock: dbProduct.in_stock,
+        createdAt: new Date(dbProduct.created_at)
+    };
+}

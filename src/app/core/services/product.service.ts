@@ -1,7 +1,8 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { Product, FilterState } from '../models/product.model';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { Product, FilterState, DbProduct, DbCategory, dbProductToProduct } from '../models/product.model';
+import { SupabaseService } from './supabase.service';
 
-// Mock products for initial development (will be replaced by Supabase data)
+// Mock products for when Supabase is not configured
 const MOCK_PRODUCTS: Product[] = [
     {
         id: 'oversize-001',
@@ -166,16 +167,80 @@ const MOCK_PRODUCTS: Product[] = [
     providedIn: 'root'
 })
 export class ProductService {
+    private readonly supabase = inject(SupabaseService);
 
     // State signals
-    private readonly _products = signal<Product[]>(MOCK_PRODUCTS);
-    private readonly _loading = signal(false);
+    private readonly _products = signal<Product[]>([]);
+    private readonly _categories = signal<DbCategory[]>([]);
+    private readonly _loading = signal(true);
     private readonly _error = signal<string | null>(null);
+    private _initialized = false;
 
     // Public readonly signals
     readonly products = this._products.asReadonly();
+    readonly categories = this._categories.asReadonly();
     readonly loading = this._loading.asReadonly();
     readonly error = this._error.asReadonly();
+
+    constructor() {
+        this.initializeProducts();
+    }
+
+    /**
+     * Initialize products - loads from Supabase if configured, otherwise uses mock data
+     */
+    private async initializeProducts(): Promise<void> {
+        if (this._initialized) return;
+        this._initialized = true;
+
+        this._loading.set(true);
+        this._error.set(null);
+
+        try {
+            if (this.supabase.isEnabled) {
+                // Load categories first
+                const categories = await this.supabase.getAll<DbCategory>('categories', {
+                    filters: [{ column: 'is_active', operator: 'eq', value: true }]
+                });
+                this._categories.set(categories);
+
+                // Create a map for quick category lookup
+                const categoryMap = new Map(categories.map(c => [c.id, c]));
+
+                // Load products with category info
+                const dbProducts = await this.supabase.getAll<DbProduct>('products', {
+                    filters: [{ column: 'is_active', operator: 'eq', value: true }],
+                    orderBy: { column: 'created_at', ascending: false }
+                });
+
+                // Convert DB products to frontend Model
+                const products = dbProducts.map(dbProduct => {
+                    const category = dbProduct.category_id ? categoryMap.get(dbProduct.category_id) : null;
+                    return dbProductToProduct(dbProduct, category?.slug);
+                });
+
+                this._products.set(products);
+            } else {
+                // Use mock data when Supabase is not configured
+                this._products.set(MOCK_PRODUCTS);
+            }
+        } catch (err) {
+            console.error('Error loading products:', err);
+            this._error.set('Error cargando productos');
+            // Fallback to mock data on error
+            this._products.set(MOCK_PRODUCTS);
+        } finally {
+            this._loading.set(false);
+        }
+    }
+
+    /**
+     * Refresh products from Supabase
+     */
+    async refreshProducts(): Promise<void> {
+        this._initialized = false;
+        await this.initializeProducts();
+    }
 
     /**
      * Get products filtered by category
@@ -234,31 +299,5 @@ export class ProductService {
      */
     getProductById(id: string): Product | undefined {
         return this._products().find(p => p.id === id);
-    }
-
-    /**
-     * Load products from Supabase (for future use)
-     * @param supabase - SupabaseService instance (passed to avoid circular dependency)
-     */
-    async loadProductsFromSupabase(supabase: { getAll: <T>(table: string) => Promise<T[]> }): Promise<void> {
-        if (!supabase) {
-            console.warn('Supabase not available, using mock data.');
-            return;
-        }
-
-        this._loading.set(true);
-        this._error.set(null);
-
-        try {
-            const products = await supabase.getAll<Product>('products');
-            if (products.length > 0) {
-                this._products.set(products);
-            }
-        } catch (err) {
-            this._error.set('Error loading products');
-            console.error('Failed to load products:', err);
-        } finally {
-            this._loading.set(false);
-        }
     }
 }

@@ -32,6 +32,10 @@ export const routes: Routes = [
         title: 'SABOTAGE - Carrito'
     },
     {
+        path: 'admin',
+        loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
+    },
+    {
         path: '**',
         redirectTo: ''
     }
