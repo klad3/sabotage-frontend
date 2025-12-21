@@ -216,6 +216,18 @@ import { DbOrder, OrderStatus } from '../../../../../core/models/product.model';
             color: #fff;
             font-size: 14px;
             min-width: 180px;
+            cursor: pointer;
+        }
+
+        .filters-bar select:focus {
+            outline: none;
+            border-color: #feca57;
+        }
+
+        .filters-bar select option {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 12px;
         }
 
         .loading-state, .empty-state {
@@ -502,6 +514,18 @@ import { DbOrder, OrderStatus } from '../../../../../core/models/product.model';
             color: #fff;
             font-size: 14px;
             margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #feca57;
+        }
+
+        .status-select option {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 12px;
         }
 
         .btn-primary.update-status {
