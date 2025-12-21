@@ -1,12 +1,15 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../../../core/services/cart.service';
+import { SupabaseService } from '../../../../core/services/supabase.service';
+import { DbOrder } from '../../../../core/models/product.model';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
-    selector: 'app-cart-summary',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule],
-    template: `
+  selector: 'app-cart-summary',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule],
+  template: `
     <aside class="bg-sabotage-dark border-2 border-sabotage-border p-6 md:p-8 rounded-lg h-fit md:sticky md:top-[120px]">
       <!-- Header -->
       <div class="mb-6 pb-4 border-b-2 border-sabotage-border">
@@ -73,10 +76,14 @@ import { CartService } from '../../../../core/services/cart.service';
       <button
         type="button"
         (click)="checkout()"
-        [disabled]="cartService.isEmpty()"
+        [disabled]="cartService.isEmpty() || isProcessing()"
         class="w-full py-4 md:py-5 bg-sabotage-light text-black font-extrabold text-lg md:text-xl tracking-wider rounded mt-6 transition-all duration-300 hover:bg-white hover:scale-[1.02] disabled:bg-[#555] disabled:text-[#888] disabled:cursor-not-allowed disabled:transform-none"
       >
-        FINALIZAR COMPRA
+        @if (isProcessing()) {
+          PROCESANDO...
+        } @else {
+          FINALIZAR COMPRA
+        }
       </button>
 
       <!-- Guarantee Info -->
@@ -87,70 +94,158 @@ import { CartService } from '../../../../core/services/cart.service';
       </div>
     </aside>
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
 export class CartSummaryComponent {
-    readonly cartService = inject(CartService);
+  readonly cartService = inject(CartService);
+  private readonly supabase = inject(SupabaseService);
 
-    discountCode = '';
-    readonly discountMessage = signal<string | null>(null);
-    readonly discountSuccess = signal(false);
+  discountCode = '';
+  readonly discountMessage = signal<string | null>(null);
+  readonly discountSuccess = signal(false);
+  readonly isProcessing = signal(false);
 
-    applyDiscount(): void {
-        const result = this.cartService.applyDiscountCode(this.discountCode);
-        this.discountMessage.set(result.message);
-        this.discountSuccess.set(result.success);
+  applyDiscount(): void {
+    const result = this.cartService.applyDiscountCode(this.discountCode);
+    this.discountMessage.set(result.message);
+    this.discountSuccess.set(result.success);
 
-        if (result.success) {
-            this.discountCode = '';
-        }
-
-        // Clear error message after 3 seconds
-        if (!result.success) {
-            setTimeout(() => {
-                this.discountMessage.set(null);
-            }, 3000);
-        }
+    if (result.success) {
+      this.discountCode = '';
     }
 
-    checkout(): void {
-        const cartData = this.cartService.getCartData();
-
-        // Build WhatsApp message
-        let message = '🛍️ *NUEVO PEDIDO - SABOTAGE*\n\n';
-        message += '*PRODUCTOS:*\n';
-
-        cartData.items.forEach((item, index) => {
-            message += `\n${index + 1}. ${item.name}\n`;
-            message += `   • Talla: ${item.size}\n`;
-            message += `   • Cantidad: ${item.quantity}\n`;
-            message += `   • Precio: S/ ${(item.price * item.quantity).toFixed(2)}\n`;
-        });
-
-        message += '\n*RESUMEN:*\n';
-        message += `Subtotal: S/ ${cartData.subtotal.toFixed(2)}\n`;
-        message += `Envío: S/ ${cartData.shipping.toFixed(2)}\n`;
-
-        if (cartData.discountAmount > 0) {
-            message += `Descuento (${cartData.discountCode}): -S/ ${cartData.discountAmount.toFixed(2)}\n`;
-        }
-
-        message += `*TOTAL: S/ ${cartData.total.toFixed(2)}*\n\n`;
-        message += '¡Gracias por tu compra! 🔥';
-
-        // Open WhatsApp
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/51933866156?text=${encodedMessage}`;
-
-        if (typeof window !== 'undefined') {
-            window.open(whatsappUrl, '_blank');
-        }
-
-        // Ask to clear cart
-        if (typeof window !== 'undefined' && confirm('¿Deseas vaciar el carrito después de enviar el pedido?')) {
-            this.cartService.clearCart();
-        }
+    // Clear error message after 3 seconds
+    if (!result.success) {
+      setTimeout(() => {
+        this.discountMessage.set(null);
+      }, 3000);
     }
+  }
+
+  async checkout(): Promise<void> {
+    this.isProcessing.set(true);
+    const cartData = this.cartService.getCartData();
+
+    try {
+      // Generate order number
+      const orderNumber = this.generateOrderNumber();
+
+      // Save order to Supabase (if configured)
+      if (this.supabase.isEnabled) {
+        const orderData: Partial<DbOrder> = {
+          order_number: orderNumber,
+          customer_name: 'Cliente WhatsApp', // Se actualiza después por el admin
+          customer_phone: 'Pendiente', // Se actualiza cuando contacta por WhatsApp
+          items: cartData.items.map(item => ({
+            id: item.productId,
+            name: item.name,
+            size: item.size,
+            quantity: item.quantity,
+            price: item.price,
+            image: item.imageUrl
+          })),
+          subtotal: cartData.subtotal,
+          shipping: cartData.shipping,
+          discount_code: cartData.discountCode || undefined,
+          discount_amount: cartData.discountAmount,
+          total: cartData.total,
+          status: 'pending',
+          notes: 'Pedido generado desde la web - pendiente de datos del cliente'
+        };
+
+        await this.supabase.insert<DbOrder>('orders', orderData);
+      }
+
+      // Build WhatsApp message
+      let message = '🛍️ *NUEVO PEDIDO - SABOTAGE*\n';
+      message += `📋 Pedido: #${orderNumber}\n\n`;
+      message += '*PRODUCTOS:*\n';
+
+      cartData.items.forEach((item, index) => {
+        message += `\n${index + 1}. ${item.name}\n`;
+        message += `   • Talla: ${item.size}\n`;
+        message += `   • Cantidad: ${item.quantity}\n`;
+        message += `   • Precio: S/ ${(item.price * item.quantity).toFixed(2)}\n`;
+      });
+
+      message += '\n*RESUMEN:*\n';
+      message += `Subtotal: S/ ${cartData.subtotal.toFixed(2)}\n`;
+      message += `Envío: S/ ${cartData.shipping.toFixed(2)}\n`;
+
+      if (cartData.discountAmount > 0) {
+        message += `Descuento (${cartData.discountCode}): -S/ ${cartData.discountAmount.toFixed(2)}\n`;
+      }
+
+      message += `*TOTAL: S/ ${cartData.total.toFixed(2)}*\n\n`;
+      message += '📍 Por favor, envíame tu:\n';
+      message += '• Nombre completo\n';
+      message += '• Dirección de envío\n';
+      message += '• Distrito\n\n';
+      message += '¡Gracias por tu compra! 🔥';
+
+      // Open WhatsApp
+      const encodedMessage = encodeURIComponent(message);
+      const phoneNumber = environment.whatsapp?.phoneNumber || '51933866156';
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+      if (typeof window !== 'undefined') {
+        window.open(whatsappUrl, '_blank');
+      }
+
+      // Clear cart automatically after sending
+      this.cartService.clearCart();
+
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Even if Supabase fails, still open WhatsApp
+      this.openWhatsAppFallback(cartData);
+    } finally {
+      this.isProcessing.set(false);
+    }
+  }
+
+  private generateOrderNumber(): string {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `SAB-${year}${month}${day}-${random}`;
+  }
+
+  private openWhatsAppFallback(cartData: ReturnType<typeof this.cartService.getCartData>): void {
+    let message = '🛍️ *NUEVO PEDIDO - SABOTAGE*\n\n';
+    message += '*PRODUCTOS:*\n';
+
+    cartData.items.forEach((item, index) => {
+      message += `\n${index + 1}. ${item.name}\n`;
+      message += `   • Talla: ${item.size}\n`;
+      message += `   • Cantidad: ${item.quantity}\n`;
+      message += `   • Precio: S/ ${(item.price * item.quantity).toFixed(2)}\n`;
+    });
+
+    message += '\n*RESUMEN:*\n';
+    message += `Subtotal: S/ ${cartData.subtotal.toFixed(2)}\n`;
+    message += `Envío: S/ ${cartData.shipping.toFixed(2)}\n`;
+
+    if (cartData.discountAmount > 0) {
+      message += `Descuento (${cartData.discountCode}): -S/ ${cartData.discountAmount.toFixed(2)}\n`;
+    }
+
+    message += `*TOTAL: S/ ${cartData.total.toFixed(2)}*\n\n`;
+    message += '¡Gracias por tu compra! 🔥';
+
+    const encodedMessage = encodeURIComponent(message);
+    const phoneNumber = environment.whatsapp?.phoneNumber || '51933866156';
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    if (typeof window !== 'undefined') {
+      window.open(whatsappUrl, '_blank');
+    }
+
+    this.cartService.clearCart();
+  }
 }
+

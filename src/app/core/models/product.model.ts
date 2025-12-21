@@ -173,6 +173,16 @@ export interface DbSubscriber {
     created_at: string;
 }
 
+// Order item as stored in JSONB
+export interface OrderItem {
+    id: string;
+    name: string;
+    size: string;
+    quantity: number;
+    price: number;
+    image?: string;
+}
+
 export interface DbOrder {
     id: string;
     order_number: string;
@@ -180,7 +190,7 @@ export interface DbOrder {
     customer_email: string | null;
     customer_phone: string;
     shipping_address: string | null;
-    items: CartItem[];
+    items: OrderItem[];
     subtotal: number;
     shipping: number;
     discount_code: string | null;
