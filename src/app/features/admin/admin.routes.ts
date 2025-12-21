@@ -54,6 +54,12 @@ export const ADMIN_ROUTES: Routes = [
                 loadComponent: () => import('./pages/orders/order-list/order-list.component')
                     .then(m => m.OrderListComponent),
                 title: 'SABOTAGE Admin - Órdenes'
+            },
+            {
+                path: 'banners',
+                loadComponent: () => import('./pages/banners/banner-list/banner-list.component')
+                    .then(m => m.BannerListComponent),
+                title: 'SABOTAGE Admin - Banners'
             }
         ]
     }

@@ -320,10 +320,13 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
             font-size: 20px;
         }
 
-        .name-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+        .name-cell .product-name,
+        .name-cell .product-type {
+            display: block;
+        }
+
+        .name-cell .product-type {
+            margin-top: 4px;
         }
 
         .product-name {
@@ -370,8 +373,19 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
         }
 
         .actions-cell {
-            display: flex;
-            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .actions-cell a,
+        .actions-cell button {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .actions-cell a:last-child,
+        .actions-cell button:last-child {
+            margin-right: 0;
         }
 
         .btn-icon {
@@ -478,12 +492,39 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
         }
 
         @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .filters-bar {
+                flex-direction: column;
+            }
+
+            .filters-bar select {
+                width: 100%;
+                min-width: auto;
+                border-radius: 8px;
+                -webkit-appearance: menulist;
+                appearance: menulist;
+            }
+
             .products-table {
                 overflow-x: auto;
             }
 
             table {
                 min-width: 800px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+                font-size: 13px;
             }
         }
     `],

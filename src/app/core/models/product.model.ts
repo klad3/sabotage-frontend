@@ -211,6 +211,19 @@ export interface DbSiteConfig {
     updated_at: string;
 }
 
+export interface DbBanner {
+    id: string;
+    title: string;
+    image_desktop: string | null;
+    image_tablet: string | null;
+    image_mobile: string | null;
+    link: string | null;
+    display_order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 // Helper function to convert DB product to frontend Product
 export function dbProductToProduct(dbProduct: DbProduct, categorySlug?: string): Product {
     return {

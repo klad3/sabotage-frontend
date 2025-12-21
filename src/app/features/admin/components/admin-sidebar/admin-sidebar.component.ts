@@ -254,6 +254,7 @@ export class AdminSidebarComponent {
         { label: 'Dashboard', route: '/admin/dashboard', icon: '📊' },
         { label: 'Productos', route: '/admin/products', icon: '👕' },
         { label: 'Categorías', route: '/admin/categories', icon: '📁' },
+        { label: 'Banners', route: '/admin/banners', icon: '🖼️' },
         { label: 'Descuentos', route: '/admin/discount-codes', icon: '🏷️' },
         { label: 'Suscriptores', route: '/admin/subscribers', icon: '📧' },
         { label: 'Órdenes', route: '/admin/orders', icon: '📦' }

@@ -290,8 +290,17 @@ import { DbDiscountCode } from '../../../../../core/models/product.model';
         }
 
         .actions-cell {
-            display: flex;
-            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .actions-cell button {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .actions-cell button:last-child {
+            margin-right: 0;
         }
 
         .btn-icon {
