@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from '../../guards/unsaved-changes.guard';
 
 export const PRODUCTS_ROUTES: Routes = [
     {
@@ -10,12 +11,15 @@ export const PRODUCTS_ROUTES: Routes = [
         path: 'new',
         loadComponent: () => import('./product-form/product-form.component')
             .then(m => m.ProductFormComponent),
+        canDeactivate: [unsavedChangesGuard],
         data: { mode: 'create' }
     },
     {
         path: ':id/edit',
         loadComponent: () => import('./product-form/product-form.component')
             .then(m => m.ProductFormComponent),
+        canDeactivate: [unsavedChangesGuard],
         data: { mode: 'edit' }
     }
 ];
+

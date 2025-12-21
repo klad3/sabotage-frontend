@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
-import { ChangeDetectionStrategy } from '@angular/core';
+import { SidebarService } from '../../../../core/services/sidebar.service';
+import { filter } from 'rxjs';
 
 interface NavItem {
     label: string;
@@ -13,16 +14,28 @@ interface NavItem {
     selector: 'app-admin-sidebar',
     imports: [RouterLink, RouterLinkActive],
     template: `
-        <aside class="sidebar" [class.collapsed]="isCollapsed()">
+        <!-- Mobile backdrop -->
+        @if (sidebarService.isMobileOpen()) {
+            <div class="backdrop" (click)="sidebarService.closeMobile()"></div>
+        }
+
+        <aside 
+            class="sidebar" 
+            [class.collapsed]="sidebarService.isCollapsed()"
+            [class.mobile-open]="sidebarService.isMobileOpen()"
+        >
             <div class="sidebar-header">
                 <div class="logo">
                     <span class="logo-icon">🔥</span>
-                    @if (!isCollapsed()) {
+                    @if (!sidebarService.isCollapsed()) {
                         <span class="logo-text">SABOTAGE</span>
                     }
                 </div>
-                <button class="toggle-btn" (click)="toggleSidebar()">
-                    {{ isCollapsed() ? '→' : '←' }}
+                <button class="toggle-btn desktop-only" (click)="sidebarService.toggle()">
+                    {{ sidebarService.isCollapsed() ? '→' : '←' }}
+                </button>
+                <button class="close-btn mobile-only" (click)="sidebarService.closeMobile()">
+                    ✕
                 </button>
             </div>
 
@@ -36,7 +49,7 @@ interface NavItem {
                         [title]="item.label"
                     >
                         <span class="nav-icon">{{ item.icon }}</span>
-                        @if (!isCollapsed()) {
+                        @if (!sidebarService.isCollapsed()) {
                             <span class="nav-label">{{ item.label }}</span>
                         }
                     </a>
@@ -46,7 +59,7 @@ interface NavItem {
             <div class="sidebar-footer">
                 <button class="logout-btn" (click)="logout()" [title]="'Cerrar Sesión'">
                     <span class="nav-icon">🚪</span>
-                    @if (!isCollapsed()) {
+                    @if (!sidebarService.isCollapsed()) {
                         <span class="nav-label">Cerrar Sesión</span>
                     }
                 </button>
@@ -54,6 +67,19 @@ interface NavItem {
         </aside>
     `,
     styles: [`
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 99;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .sidebar {
             position: fixed;
             left: 0;
@@ -64,7 +90,7 @@ interface NavItem {
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
-            transition: width 0.3s ease;
+            transition: width 0.3s ease, transform 0.3s ease;
             z-index: 100;
         }
 
@@ -100,7 +126,7 @@ interface NavItem {
             letter-spacing: 2px;
         }
 
-        .toggle-btn {
+        .toggle-btn, .close-btn {
             width: 32px;
             height: 32px;
             border: none;
@@ -109,10 +135,15 @@ interface NavItem {
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 14px;
         }
 
-        .toggle-btn:hover {
+        .toggle-btn:hover, .close-btn:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-only {
+            display: none;
         }
 
         .sidebar-nav {
@@ -121,6 +152,7 @@ interface NavItem {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            overflow-y: auto;
         }
 
         .nav-item {
@@ -185,10 +217,29 @@ interface NavItem {
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
+                width: 280px;
             }
 
-            .sidebar.open {
+            .sidebar.mobile-open {
                 transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                width: 280px;
+            }
+
+            .desktop-only {
+                display: none;
+            }
+
+            .mobile-only {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-label {
+                display: inline !important;
             }
         }
     `],
@@ -196,8 +247,8 @@ interface NavItem {
 })
 export class AdminSidebarComponent {
     private readonly authService = inject(AuthService);
-
-    readonly isCollapsed = signal(false);
+    private readonly router = inject(Router);
+    readonly sidebarService = inject(SidebarService);
 
     readonly navItems: NavItem[] = [
         { label: 'Dashboard', route: '/admin/dashboard', icon: '📊' },
@@ -208,11 +259,17 @@ export class AdminSidebarComponent {
         { label: 'Órdenes', route: '/admin/orders', icon: '📦' }
     ];
 
-    toggleSidebar(): void {
-        this.isCollapsed.update(v => !v);
+    constructor() {
+        // Close mobile sidebar on navigation
+        this.router.events.pipe(
+            filter(event => event instanceof NavigationEnd)
+        ).subscribe(() => {
+            this.sidebarService.closeMobile();
+        });
     }
 
     logout(): void {
         this.authService.logout();
     }
 }
+

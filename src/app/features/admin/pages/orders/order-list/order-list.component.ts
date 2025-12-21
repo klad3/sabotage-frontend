@@ -543,6 +543,35 @@ import { DbOrder, OrderStatus } from '../../../../../core/models/product.model';
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .filters-bar {
+                flex-direction: column;
+            }
+
+            .orders-list {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 700px;
+            }
+
+            .modal {
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush
 })

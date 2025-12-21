@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@ang
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../../../core/services/supabase.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 import { DbProduct, DbCategory } from '../../../../../core/models/product.model';
 
 @Component({
@@ -490,6 +491,7 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
 })
 export class ProductListComponent implements OnInit {
     private readonly supabase = inject(SupabaseService);
+    private readonly toast = inject(ToastService);
 
     readonly loading = signal(true);
     readonly products = signal<DbProduct[]>([]);
@@ -575,9 +577,13 @@ export class ProductListComponent implements OnInit {
                 );
                 this.filterProducts();
                 this.showDeleteModal.set(false);
+                this.toast.success('Producto eliminado correctamente');
+            } else {
+                this.toast.error('Error al eliminar el producto');
             }
         } catch (error) {
             console.error('Error deleting product:', error);
+            this.toast.error('Error al eliminar el producto');
         } finally {
             this.deleting.set(false);
         }

@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AuthService } from '../../../../core/services/auth.service';
-import { ChangeDetectionStrategy } from '@angular/core';
+import { SidebarService } from '../../../../core/services/sidebar.service';
 
 @Component({
     selector: 'app-admin-header',
@@ -8,6 +8,9 @@ import { ChangeDetectionStrategy } from '@angular/core';
     template: `
         <header class="admin-header">
             <div class="header-left">
+                <button class="menu-btn" (click)="sidebarService.openMobile()">
+                    ☰
+                </button>
                 <h1 class="page-title">Panel de Administración</h1>
             </div>
             <div class="header-right">
@@ -30,6 +33,29 @@ import { ChangeDetectionStrategy } from '@angular/core';
             position: sticky;
             top: 0;
             z-index: 50;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .menu-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .page-title {
@@ -64,8 +90,18 @@ import { ChangeDetectionStrategy } from '@angular/core';
         }
 
         @media (max-width: 768px) {
+            .menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .user-email {
                 display: none;
+            }
+
+            .page-title {
+                font-size: 16px;
             }
         }
     `],
@@ -73,4 +109,6 @@ import { ChangeDetectionStrategy } from '@angular/core';
 })
 export class AdminHeaderComponent {
     readonly authService = inject(AuthService);
+    readonly sidebarService = inject(SidebarService);
 }
+

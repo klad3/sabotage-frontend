@@ -392,6 +392,26 @@ import { DbCategory } from '../../../../../core/models/product.model';
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                padding: 24px;
+            }
+        }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
