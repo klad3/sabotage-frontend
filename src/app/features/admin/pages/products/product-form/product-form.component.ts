@@ -309,6 +309,12 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
             background: rgba(255, 255, 255, 0.08);
         }
 
+        .form-group select option {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 12px;
+        }
+
         .form-group textarea {
             resize: vertical;
             min-height: 100px;
