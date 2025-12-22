@@ -303,7 +303,12 @@ export class SupabaseService {
             throw error;
         }
 
-        return data.path;
+        // Return the full public URL
+        const { data: publicUrlData } = this.supabase.storage
+            .from(bucket)
+            .getPublicUrl(data.path);
+
+        return publicUrlData.publicUrl;
     }
 
     async deleteFile(bucket: string, path: string): Promise<boolean> {

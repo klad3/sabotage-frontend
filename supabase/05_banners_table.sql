@@ -54,9 +54,39 @@ CREATE POLICY "banners_admin_delete" ON banners
     USING (true);
 
 -- ============================================
--- STORAGE BUCKET
+-- STORAGE BUCKET POLICIES
 -- ============================================
--- Crear bucket 'banners' si no existe (ejecutar en Storage > Policies)
--- INSERT INTO storage.buckets (id, name, public) 
--- VALUES ('banners', 'banners', true)
--- ON CONFLICT (id) DO NOTHING;
+-- NOTA: Antes de ejecutar estas políticas:
+-- 1. Ve a Storage en Supabase Dashboard
+-- 2. Crea un nuevo bucket llamado "banners"
+-- 3. Marca la opción "Public bucket"
+-- 4. Luego ejecuta estas políticas
+
+-- Política para lectura pública de imágenes de banners
+CREATE POLICY "Banner images are publicly accessible"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'banners');
+
+-- Política para subir imágenes (solo autenticados)
+CREATE POLICY "Authenticated users can upload banner images"
+    ON storage.objects FOR INSERT
+    WITH CHECK (
+        bucket_id = 'banners' 
+        AND auth.role() = 'authenticated'
+    );
+
+-- Política para actualizar imágenes (solo autenticados)
+CREATE POLICY "Authenticated users can update banner images"
+    ON storage.objects FOR UPDATE
+    USING (
+        bucket_id = 'banners' 
+        AND auth.role() = 'authenticated'
+    );
+
+-- Política para eliminar imágenes (solo autenticados)
+CREATE POLICY "Authenticated users can delete banner images"
+    ON storage.objects FOR DELETE
+    USING (
+        bucket_id = 'banners' 
+        AND auth.role() = 'authenticated'
+    );
