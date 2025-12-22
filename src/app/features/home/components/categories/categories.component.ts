@@ -38,7 +38,7 @@ import { DbCategory } from '../../../../core/models/product.model';
                 </div>
               }
             </div>
-            <div class="text-center my-4 text-lg md:text-2xl font-bold z-[1]">
+            <div class="text-center my-4 text-lg md:text-2xl font-bold z-[1] uppercase">
               {{ category.name }}
             </div>
           </a>

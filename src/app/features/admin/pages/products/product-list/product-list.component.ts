@@ -331,6 +331,7 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
 
         .product-name {
             font-weight: 500;
+            text-transform: uppercase;
         }
 
         .product-type {

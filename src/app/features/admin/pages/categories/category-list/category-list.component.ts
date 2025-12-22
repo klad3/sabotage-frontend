@@ -251,6 +251,7 @@ import { DbCategory } from '../../../../../core/models/product.model';
             font-weight: 600;
             color: #fff;
             margin: 0 0 4px;
+            text-transform: uppercase;
         }
 
         .slug {

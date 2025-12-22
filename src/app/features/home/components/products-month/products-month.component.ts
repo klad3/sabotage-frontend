@@ -3,10 +3,10 @@ import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 
 @Component({
-    selector: 'app-products-month',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink],
-    template: `
+  selector: 'app-products-month',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
+  template: `
     <section class="py-12 md:py-20 px-5 md:px-10 max-w-[1400px] mx-auto">
       <h2 class="text-3xl md:text-5xl font-extrabold text-center mb-10 md:mb-16 tracking-wider slide-in">
         PRODUCTOS DEL MES
@@ -27,7 +27,7 @@ import { ProductService } from '../../../../core/services/product.service';
               />
             </div>
             <div class="product-info">
-              <h3 class="text-lg md:text-2xl font-bold mb-2">{{ product.name }}</h3>
+              <h3 class="text-lg md:text-2xl font-bold mb-2 uppercase">{{ product.name }}</h3>
               <p class="text-sm md:text-lg text-sabotage-muted mb-4">{{ product.description }}</p>
               <div class="text-xl md:text-3xl font-extrabold">S/ {{ product.price.toFixed(2) }}</div>
             </div>
@@ -36,12 +36,12 @@ import { ProductService } from '../../../../core/services/product.service';
       </div>
     </section>
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
 export class ProductsMonthComponent {
-    private readonly productService = inject(ProductService);
+  private readonly productService = inject(ProductService);
 
-    readonly featuredProducts = this.productService.featuredProducts;
+  readonly featuredProducts = this.productService.featuredProducts;
 }

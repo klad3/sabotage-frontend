@@ -25,7 +25,7 @@ import { Product } from '../../../../core/models/product.model';
 
       <!-- Product Info -->
       <div class="flex-1 flex flex-col">
-        <h3 class="text-base md:text-xl font-bold mb-2 text-sabotage-light">
+        <h3 class="text-base md:text-xl font-bold mb-2 text-sabotage-light uppercase">
           {{ product().name }}
         </h3>
         <p class="text-xs md:text-sm text-sabotage-muted mb-3 leading-relaxed line-clamp-2">
