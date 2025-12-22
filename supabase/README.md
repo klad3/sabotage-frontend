@@ -93,6 +93,12 @@ export const environment = {
 3. Haz clic en **"Run"**
 4. Esta tabla permite gestionar el carrusel de la página principal con imágenes para desktop, tablet y mobile
 
+### Paso 3.6: Configurar Site Settings (Configuraciones del Sitio)
+1. Haz clic en **"New query"**
+2. Copia y pega TODO el contenido de: `supabase/06_site_settings_seed.sql`
+3. Haz clic en **"Run"**
+4. Esto inserta las configuraciones iniciales: barra de anuncios, contacto, estadísticas, etc.
+
 ---
 
 ## 4. Configurar Storage

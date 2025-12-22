@@ -1,20 +1,21 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SiteConfigService } from '../../../../core/services/site-config.service';
 
 interface Category {
-    name: string;
-    imageUrl: string;
-    route: string;
+  name: string;
+  imageUrl: string;
+  route: string;
 }
 
 @Component({
-    selector: 'app-categories',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink],
-    template: `
+  selector: 'app-categories',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
+  template: `
     <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-dark border-t-2 border-b-2 border-sabotage-border">
       <h2 class="text-3xl md:text-6xl font-extrabold text-center mb-10 md:mb-16 tracking-wide">
-        COMPRA POR CATEGORÍA
+        {{ siteConfig.sectionTitles().categories }}
       </h2>
 
       <div class="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -43,31 +44,38 @@ interface Category {
       </div>
     </section>
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
-export class CategoriesComponent {
-    readonly categories: Category[] = [
-        {
-            name: 'POLOS OVERSIZE',
-            imageUrl: '/img/NEGRO OVERSIZE SOLO C.png',
-            route: '/oversize'
-        },
-        {
-            name: 'POLOS CLÁSICOS',
-            imageUrl: '/img/ROJO Y CELESTE JUNTOS ENFRENTADOS PERFIL.png',
-            route: '/polos-clasicos'
-        },
-        {
-            name: 'PERSONALIZADOS',
-            imageUrl: '/img/BLANCO MOCKUP ENJAMBRE 1.png',
-            route: '/oversize'
-        },
-        {
-            name: 'TOTTEBAGS',
-            imageUrl: '/img/TOTTEBAG AMARILLO DE BICICLETA BLANCO.png',
-            route: '/oversize'
-        }
-    ];
+export class CategoriesComponent implements OnInit {
+  readonly siteConfig = inject(SiteConfigService);
+
+  readonly categories: Category[] = [
+    {
+      name: 'POLOS OVERSIZE',
+      imageUrl: '/img/NEGRO OVERSIZE SOLO C.png',
+      route: '/oversize'
+    },
+    {
+      name: 'POLOS CLÁSICOS',
+      imageUrl: '/img/ROJO Y CELESTE JUNTOS ENFRENTADOS PERFIL.png',
+      route: '/polos-clasicos'
+    },
+    {
+      name: 'PERSONALIZADOS',
+      imageUrl: '/img/BLANCO MOCKUP ENJAMBRE 1.png',
+      route: '/oversize'
+    },
+    {
+      name: 'TOTTEBAGS',
+      imageUrl: '/img/TOTTEBAG AMARILLO DE BICICLETA BLANCO.png',
+      route: '/oversize'
+    }
+  ];
+
+  async ngOnInit(): Promise<void> {
+    await this.siteConfig.loadConfigs();
+  }
 }
+

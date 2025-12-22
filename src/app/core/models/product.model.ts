@@ -207,7 +207,7 @@ export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'c
 export interface DbSiteConfig {
     id: string;
     key: string;
-    value: Record<string, unknown>;
+    value: Record<string, unknown> | unknown[]; // JSONB - can be object or array
     updated_at: string;
 }
 
@@ -242,3 +242,55 @@ export function dbProductToProduct(dbProduct: DbProduct, categorySlug?: string):
         createdAt: new Date(dbProduct.created_at)
     };
 }
+
+// ============================================
+// Site Configuration Types
+// ============================================
+
+export interface AnnouncementBar {
+    text: string;
+    link: string | null;
+    is_active: boolean;
+    background_color: string;
+    text_color: string;
+}
+
+export interface ContactInfo {
+    whatsapp: string;
+    whatsapp_message: string;
+    email: string;
+    instagram: string;
+    facebook: string;
+    tiktok: string;
+}
+
+export interface Branding {
+    logo_url: string | null;
+    logo_alt: string;
+    favicon_url: string | null;
+    site_name: string;
+    tagline: string;
+}
+
+export interface StatItem {
+    value: string;
+    label: string;
+    numeric_value: number | null;
+    suffix: string | null;
+    order: number;
+}
+
+export interface SectionTitles {
+    categories: string;
+    products_month: string;
+    testimonials: string;
+    newsletter: string;
+}
+
+export interface FooterConfig {
+    about_text: string;
+    copyright: string;
+    show_social_links: boolean;
+    show_payment_methods: boolean;
+}
+

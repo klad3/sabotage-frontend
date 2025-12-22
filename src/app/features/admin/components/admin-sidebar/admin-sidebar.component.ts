@@ -257,7 +257,8 @@ export class AdminSidebarComponent {
         { label: 'Banners', route: '/admin/banners', icon: '🖼️' },
         { label: 'Descuentos', route: '/admin/discount-codes', icon: '🏷️' },
         { label: 'Suscriptores', route: '/admin/subscribers', icon: '📧' },
-        { label: 'Órdenes', route: '/admin/orders', icon: '📦' }
+        { label: 'Órdenes', route: '/admin/orders', icon: '📦' },
+        { label: 'Configuración', route: '/admin/settings', icon: '⚙️' }
     ];
 
     constructor() {

@@ -5,15 +5,12 @@ import {
     ElementRef,
     inject,
     AfterViewInit,
-    OnDestroy
+    OnDestroy,
+    OnInit,
+    computed
 } from '@angular/core';
-
-interface Stat {
-    value: string;
-    numericValue?: number;
-    suffix?: string;
-    label: string;
-}
+import { SiteConfigService } from '../../../../core/services/site-config.service';
+import { StatItem } from '../../../../core/models/product.model';
 
 @Component({
     selector: 'app-stats',
@@ -21,7 +18,7 @@ interface Stat {
     template: `
     <section class="py-10 md:py-16 px-5 md:px-10 bg-sabotage-black">
       <div class="max-w-[1200px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 text-center">
-        @for (stat of stats; track stat.label) {
+        @for (stat of displayStats(); track stat.label) {
           <div class="stat-item">
             <h3 class="text-4xl md:text-6xl font-extrabold mb-2">
               {{ stat.value }}
@@ -38,22 +35,28 @@ interface Stat {
         class: 'block'
     }
 })
-export class StatsComponent implements AfterViewInit, OnDestroy {
+export class StatsComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly elementRef = inject(ElementRef);
+    private readonly siteConfig = inject(SiteConfigService);
     private observer: IntersectionObserver | null = null;
     private hasAnimated = false;
 
-    readonly stats: Stat[] = [
-        { value: '0', numericValue: 15, suffix: 'K+', label: 'Clientes felices' },
-        { value: '0', numericValue: 500, suffix: '+', label: 'Productos' },
-        { value: '0', numericValue: 98, suffix: '%', label: 'Satisfacción' },
-        { value: '24/7', label: 'Atención' }
-    ];
+    // Animated values for display
+    readonly animatedStats = signal<StatItem[]>([]);
 
-    private readonly animatedStats = signal([...this.stats]);
+    // Get stats from config service
+    readonly displayStats = computed(() => {
+        const animated = this.animatedStats();
+        return animated.length > 0 ? animated : this.siteConfig.stats();
+    });
 
-    get currentStats() {
-        return this.animatedStats();
+    async ngOnInit(): Promise<void> {
+        await this.siteConfig.loadConfigs();
+        // Initialize animated stats with starting values
+        this.animatedStats.set(this.siteConfig.stats().map(stat => ({
+            ...stat,
+            value: stat.numeric_value !== null ? '0' : stat.value
+        })));
     }
 
     ngAfterViewInit(): void {
@@ -91,21 +94,22 @@ export class StatsComponent implements AfterViewInit, OnDestroy {
         const duration = 2000;
         const frameRate = 16;
         const totalFrames = duration / frameRate;
+        const stats = this.siteConfig.stats();
 
-        this.stats.forEach((stat, index) => {
-            if (stat.numericValue !== undefined) {
+        stats.forEach((stat, index) => {
+            if (stat.numeric_value !== null) {
                 let currentFrame = 0;
-                const increment = stat.numericValue / totalFrames;
+                const increment = stat.numeric_value / totalFrames;
 
                 const timer = setInterval(() => {
                     currentFrame++;
                     const currentValue = Math.min(
                         Math.floor(increment * currentFrame),
-                        stat.numericValue!
+                        stat.numeric_value!
                     );
 
-                    this.animatedStats.update((stats) => {
-                        const newStats = [...stats];
+                    this.animatedStats.update((current) => {
+                        const newStats = [...current];
                         newStats[index] = {
                             ...stat,
                             value: currentValue + (stat.suffix || '')
@@ -115,11 +119,11 @@ export class StatsComponent implements AfterViewInit, OnDestroy {
 
                     if (currentFrame >= totalFrames) {
                         clearInterval(timer);
-                        this.animatedStats.update((stats) => {
-                            const newStats = [...stats];
+                        this.animatedStats.update((current) => {
+                            const newStats = [...current];
                             newStats[index] = {
                                 ...stat,
-                                value: stat.numericValue + (stat.suffix || '')
+                                value: stat.numeric_value + (stat.suffix || '')
                             };
                             return newStats;
                         });
@@ -129,3 +133,4 @@ export class StatsComponent implements AfterViewInit, OnDestroy {
         });
     }
 }
+

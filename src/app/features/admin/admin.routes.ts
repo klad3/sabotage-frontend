@@ -60,6 +60,12 @@ export const ADMIN_ROUTES: Routes = [
                 loadComponent: () => import('./pages/banners/banner-list/banner-list.component')
                     .then(m => m.BannerListComponent),
                 title: 'SABOTAGE Admin - Banners'
+            },
+            {
+                path: 'settings',
+                loadComponent: () => import('./pages/settings/site-settings/site-settings.component')
+                    .then(m => m.SiteSettingsComponent),
+                title: 'SABOTAGE Admin - Configuración'
             }
         ]
     }
