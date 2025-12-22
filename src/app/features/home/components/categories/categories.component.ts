@@ -1,12 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SiteConfigService } from '../../../../core/services/site-config.service';
-
-interface Category {
-  name: string;
-  imageUrl: string;
-  route: string;
-}
+import { SupabaseService } from '../../../../core/services/supabase.service';
+import { DbCategory } from '../../../../core/models/product.model';
 
 @Component({
   selector: 'app-categories',
@@ -19,9 +15,9 @@ interface Category {
       </h2>
 
       <div class="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-        @for (category of categories; track category.name) {
+        @for (category of categories(); track category.id) {
           <a
-            [routerLink]="category.route"
+            [routerLink]="'/' + category.slug"
             class="bg-sabotage-black border-2 border-sabotage-border flex flex-col items-center cursor-pointer transition-all duration-400 relative overflow-hidden group hover:border-sabotage-light hover:scale-[1.03]"
           >
             <!-- Ripple effect -->
@@ -30,11 +26,17 @@ interface Category {
             ></div>
 
             <div class="w-full flex items-center justify-center overflow-hidden z-[1]">
-              <img
-                [src]="category.imageUrl"
-                [alt]="category.name"
-                class="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(.25,.8,.25,1)] group-hover:scale-105"
-              />
+              @if (category.image_url) {
+                <img
+                  [src]="category.image_url"
+                  [alt]="category.name"
+                  class="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(.25,.8,.25,1)] group-hover:scale-105"
+                />
+              } @else {
+                <div class="w-full aspect-square bg-sabotage-gray flex items-center justify-center text-6xl">
+                  📁
+                </div>
+              }
             </div>
             <div class="text-center my-4 text-lg md:text-2xl font-bold z-[1]">
               {{ category.name }}
@@ -50,32 +52,22 @@ interface Category {
 })
 export class CategoriesComponent implements OnInit {
   readonly siteConfig = inject(SiteConfigService);
+  private readonly supabase = inject(SupabaseService);
 
-  readonly categories: Category[] = [
-    {
-      name: 'POLOS OVERSIZE',
-      imageUrl: '/img/NEGRO OVERSIZE SOLO C.png',
-      route: '/oversize'
-    },
-    {
-      name: 'POLOS CLÁSICOS',
-      imageUrl: '/img/ROJO Y CELESTE JUNTOS ENFRENTADOS PERFIL.png',
-      route: '/polos-clasicos'
-    },
-    {
-      name: 'PERSONALIZADOS',
-      imageUrl: '/img/BLANCO MOCKUP ENJAMBRE 1.png',
-      route: '/oversize'
-    },
-    {
-      name: 'TOTTEBAGS',
-      imageUrl: '/img/TOTTEBAG AMARILLO DE BICICLETA BLANCO.png',
-      route: '/oversize'
-    }
-  ];
+  readonly categories = signal<DbCategory[]>([]);
 
   async ngOnInit(): Promise<void> {
     await this.siteConfig.loadConfigs();
+    await this.loadCategories();
+  }
+
+  private async loadCategories(): Promise<void> {
+    const data = await this.supabase.getAll<DbCategory>('categories', {
+      orderBy: { column: 'display_order', ascending: true },
+      filters: [{ column: 'is_active', operator: 'eq', value: true }]
+    });
+    this.categories.set(data);
   }
 }
+
 

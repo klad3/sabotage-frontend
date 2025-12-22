@@ -7,7 +7,9 @@ import {
     Branding,
     StatItem,
     SectionTitles,
-    FooterConfig
+    FooterConfig,
+    Testimonial,
+    NewsletterContent
 } from '../models/product.model';
 
 // Default values when database is not configured
@@ -57,6 +59,17 @@ const DEFAULT_FOOTER: FooterConfig = {
     show_payment_methods: true
 };
 
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+    { stars: 5, text: 'La calidad es increíble!', author: 'María G.', order: 1 },
+    { stars: 5, text: 'Los diseños son únicos!', author: 'Carlos R.', order: 2 },
+    { stars: 5, text: 'Excelente relación calidad-precio!', author: 'Andrea L.', order: 3 }
+];
+
+const DEFAULT_NEWSLETTER_CONTENT: NewsletterContent = {
+    title: 'ÚNETE AL CREW',
+    subtitle: 'Suscríbete y recibe descuentos exclusivos, lanzamientos y más'
+};
+
 @Injectable({ providedIn: 'root' })
 export class SiteConfigService {
     private readonly supabase = inject(SupabaseService);
@@ -75,6 +88,8 @@ export class SiteConfigService {
     readonly stats = signal<StatItem[]>(DEFAULT_STATS);
     readonly sectionTitles = signal<SectionTitles>(DEFAULT_SECTION_TITLES);
     readonly footer = signal<FooterConfig>(DEFAULT_FOOTER);
+    readonly testimonials = signal<Testimonial[]>(DEFAULT_TESTIMONIALS);
+    readonly newsletterContent = signal<NewsletterContent>(DEFAULT_NEWSLETTER_CONTENT);
 
     // ============================================
     // Load All Configurations
@@ -120,6 +135,14 @@ export class SiteConfigService {
                 break;
             case 'footer':
                 this.footer.set({ ...DEFAULT_FOOTER, ...(value as Partial<FooterConfig>) });
+                break;
+            case 'testimonials':
+                if (Array.isArray(value)) {
+                    this.testimonials.set(value as Testimonial[]);
+                }
+                break;
+            case 'newsletter_content':
+                this.newsletterContent.set({ ...DEFAULT_NEWSLETTER_CONTENT, ...(value as Partial<NewsletterContent>) });
                 break;
         }
     }

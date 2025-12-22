@@ -15,11 +15,15 @@ CREATE TABLE IF NOT EXISTS categories (
     name TEXT NOT NULL UNIQUE,
     slug TEXT NOT NULL UNIQUE,
     description TEXT,
+    image_url TEXT,
     display_order INT DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Agregar image_url si no existe (para migraciones)
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 -- Tabla de productos
 CREATE TABLE IF NOT EXISTS products (

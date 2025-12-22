@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { SiteConfigService } from '../../../core/services/site-config.service';
 
 @Component({
   selector: 'app-footer',
@@ -8,39 +9,63 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
       <div class="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
         <!-- Brand Section -->
         <div class="footer-section">
-          <div class="text-4xl font-extrabold tracking-wider mb-4">SABOTAGE</div>
+          <div class="text-4xl font-extrabold tracking-wider mb-4">
+            {{ siteConfig.branding().site_name }}
+          </div>
           <p class="text-sabotage-muted leading-relaxed">
-            Moda urbana con actitud.<br />Diseño, calidad y estilo.
+            {{ siteConfig.branding().tagline }}
           </p>
         </div>
 
         <!-- Contact Section -->
         <div class="footer-section">
           <h3 class="text-2xl font-bold tracking-wider mb-5">CONTACTO</h3>
-          <p class="text-sabotage-muted leading-relaxed">
-            Av. La Marina 2355<br />San Miguel, Lima - Perú
-          </p>
-          <p class="text-sabotage-muted leading-relaxed mt-2">
-            contacto&#64;sabotage.pe<br />+51 987 654 321
-          </p>
+          @if (siteConfig.contactInfo().email) {
+            <p class="text-sabotage-muted leading-relaxed">
+              {{ siteConfig.contactInfo().email }}
+            </p>
+          }
+          @if (siteConfig.contactInfo().whatsapp) {
+            <p class="text-sabotage-muted leading-relaxed mt-2">
+              +{{ siteConfig.contactInfo().whatsapp }}
+            </p>
+          }
         </div>
 
-        <!-- Info Section -->
+        <!-- Social Section -->
         <div class="footer-section">
-          <h3 class="text-2xl font-bold tracking-wider mb-5">INFORMACIÓN</h3>
+          <h3 class="text-2xl font-bold tracking-wider mb-5">SÍGUENOS</h3>
           <nav class="flex flex-col gap-2">
-            <a href="#envios" class="text-sabotage-muted hover:text-sabotage-light transition-colors">
-              Envíos y Devoluciones
-            </a>
-            <a href="#pagos" class="text-sabotage-muted hover:text-sabotage-light transition-colors">
-              Métodos de Pago
-            </a>
-            <a href="#tallas" class="text-sabotage-muted hover:text-sabotage-light transition-colors">
-              Guía de Tallas
-            </a>
-            <a href="#cuidados" class="text-sabotage-muted hover:text-sabotage-light transition-colors">
-              Cuidado de Prendas
-            </a>
+            @if (siteConfig.contactInfo().instagram) {
+              <a 
+                [href]="'https://instagram.com/' + siteConfig.contactInfo().instagram" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sabotage-muted hover:text-sabotage-light transition-colors"
+              >
+                📷 @{{ siteConfig.contactInfo().instagram }}
+              </a>
+            }
+            @if (siteConfig.contactInfo().facebook) {
+              <a 
+                [href]="'https://facebook.com/' + siteConfig.contactInfo().facebook" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sabotage-muted hover:text-sabotage-light transition-colors"
+              >
+                📘 {{ siteConfig.contactInfo().facebook }}
+              </a>
+            }
+            @if (siteConfig.contactInfo().tiktok) {
+              <a 
+                [href]="'https://tiktok.com/@' + siteConfig.contactInfo().tiktok" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sabotage-muted hover:text-sabotage-light transition-colors"
+              >
+                🎵 @{{ siteConfig.contactInfo().tiktok }}
+              </a>
+            }
           </nav>
         </div>
 
@@ -66,8 +91,7 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 
       <!-- Bottom Section -->
       <div class="text-center pt-8 border-t border-sabotage-border text-sabotage-subtle text-sm">
-        <p>© 2024 SABOTAGE PERU. Todos los derechos reservados.</p>
-        <p class="mt-1">RUC: 20123456789 | VESTIMOS TU PASION | Lima, Perú</p>
+        <p>{{ siteConfig.footer().copyright }}</p>
       </div>
     </footer>
   `,
@@ -75,4 +99,11 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     class: 'block'
   }
 })
-export class FooterComponent { }
+export class FooterComponent implements OnInit {
+  readonly siteConfig = inject(SiteConfigService);
+
+  async ngOnInit(): Promise<void> {
+    await this.siteConfig.loadConfigs();
+  }
+}
+

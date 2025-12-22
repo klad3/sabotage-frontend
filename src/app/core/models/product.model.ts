@@ -142,6 +142,7 @@ export interface DbCategory {
     name: string;
     slug: string;
     description: string | null;
+    image_url: string | null;
     display_order: number;
     is_active: boolean;
     created_at: string;
@@ -293,4 +294,17 @@ export interface FooterConfig {
     show_social_links: boolean;
     show_payment_methods: boolean;
 }
+
+export interface Testimonial {
+    stars: number;
+    text: string;
+    author: string;
+    order: number;
+}
+
+export interface NewsletterContent {
+    title: string;
+    subtitle: string;
+}
+
 

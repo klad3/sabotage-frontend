@@ -10,6 +10,12 @@ interface NavItem {
     icon: string;
 }
 
+interface NavGroup {
+    title: string;
+    icon: string;
+    items: NavItem[];
+}
+
 @Component({
     selector: 'app-admin-sidebar',
     imports: [RouterLink, RouterLinkActive],
@@ -40,19 +46,31 @@ interface NavItem {
             </div>
 
             <nav class="sidebar-nav">
-                @for (item of navItems; track item.route) {
-                    <a 
-                        [routerLink]="item.route" 
-                        routerLinkActive="active"
-                        [routerLinkActiveOptions]="{ exact: item.route === '/admin/dashboard' }"
-                        class="nav-item"
-                        [title]="item.label"
-                    >
-                        <span class="nav-icon">{{ item.icon }}</span>
+                @for (group of navGroups; track group.title) {
+                    <div class="nav-group">
                         @if (!sidebarService.isCollapsed()) {
-                            <span class="nav-label">{{ item.label }}</span>
+                            <div class="group-title">
+                                <span class="group-icon">{{ group.icon }}</span>
+                                {{ group.title }}
+                            </div>
+                        } @else {
+                            <div class="group-separator"></div>
                         }
-                    </a>
+                        @for (item of group.items; track item.route) {
+                            <a 
+                                [routerLink]="item.route" 
+                                routerLinkActive="active"
+                                [routerLinkActiveOptions]="{ exact: item.route === '/admin/dashboard' }"
+                                class="nav-item"
+                                [title]="item.label"
+                            >
+                                <span class="nav-icon">{{ item.icon }}</span>
+                                @if (!sidebarService.isCollapsed()) {
+                                    <span class="nav-label">{{ item.label }}</span>
+                                }
+                            </a>
+                        }
+                    </div>
                 }
             </nav>
 
@@ -98,122 +116,7 @@ interface NavItem {
             width: 72px;
         }
 
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            font-size: 28px;
-        }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 2px;
-        }
-
-        .toggle-btn, .close-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-
-        .toggle-btn:hover, .close-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .mobile-only {
-            display: none;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            overflow-y: auto;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(254, 202, 87, 0.2));
-            color: #feca57;
-            border: 1px solid rgba(254, 202, 87, 0.3);
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .nav-label {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .sidebar-footer {
-            padding: 16px 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            width: 100%;
-            border: none;
-            background: transparent;
-            border-radius: 12px;
-            color: rgba(255, 107, 107, 0.8);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 107, 107, 0.1);
-            color: #ff6b6b;
-        }
-
+        /* Mobile: hidden by default */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -224,23 +127,162 @@ interface NavItem {
                 transform: translateX(0);
             }
 
-            .sidebar.collapsed {
-                width: 280px;
-            }
-
             .desktop-only {
-                display: none;
+                display: none !important;
             }
+        }
 
+        @media (min-width: 769px) {
             .mobile-only {
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: none !important;
             }
+        }
 
-            .nav-label {
-                display: inline !important;
-            }
+        .sidebar-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .toggle-btn, .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .toggle-btn:hover, .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem 0;
+        }
+
+        .nav-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .group-title {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .group-icon {
+            font-size: 0.8rem;
+        }
+
+        .group-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 1rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+            border-left-color: #00d9ff;
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 100, 100, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: #ff6464;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 100, 100, 0.2);
+        }
+
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar.collapsed .logout-btn {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .group-title {
+            display: none;
         }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -250,15 +292,39 @@ export class AdminSidebarComponent {
     private readonly router = inject(Router);
     readonly sidebarService = inject(SidebarService);
 
-    readonly navItems: NavItem[] = [
-        { label: 'Dashboard', route: '/admin/dashboard', icon: '📊' },
-        { label: 'Productos', route: '/admin/products', icon: '👕' },
-        { label: 'Categorías', route: '/admin/categories', icon: '📁' },
-        { label: 'Banners', route: '/admin/banners', icon: '🖼️' },
-        { label: 'Descuentos', route: '/admin/discount-codes', icon: '🏷️' },
-        { label: 'Suscriptores', route: '/admin/subscribers', icon: '📧' },
-        { label: 'Órdenes', route: '/admin/orders', icon: '📦' },
-        { label: 'Configuración', route: '/admin/settings', icon: '⚙️' }
+    readonly navGroups: NavGroup[] = [
+        {
+            title: 'General',
+            icon: '📊',
+            items: [
+                { label: 'Dashboard', route: '/admin/dashboard', icon: '🏠' }
+            ]
+        },
+        {
+            title: 'Tienda',
+            icon: '🛒',
+            items: [
+                { label: 'Productos', route: '/admin/products', icon: '👕' },
+                { label: 'Categorías', route: '/admin/categories', icon: '📁' },
+                { label: 'Órdenes', route: '/admin/orders', icon: '📦' },
+                { label: 'Descuentos', route: '/admin/discount-codes', icon: '🏷️' }
+            ]
+        },
+        {
+            title: 'Clientes',
+            icon: '👥',
+            items: [
+                { label: 'Suscriptores', route: '/admin/subscribers', icon: '📧' }
+            ]
+        },
+        {
+            title: 'Apariencia',
+            icon: '🎨',
+            items: [
+                { label: 'Banners', route: '/admin/banners', icon: '🖼️' },
+                { label: 'Configuración', route: '/admin/settings', icon: '⚙️' }
+            ]
+        }
     ];
 
     constructor() {
@@ -274,4 +340,3 @@ export class AdminSidebarComponent {
         this.authService.logout();
     }
 }
-

@@ -7,7 +7,9 @@ import {
     ContactInfo,
     Branding,
     StatItem,
-    SectionTitles
+    SectionTitles,
+    Testimonial,
+    NewsletterContent
 } from '../../../../../core/models/product.model';
 
 @Component({
@@ -149,6 +151,56 @@ import {
                         {{ saving() ? 'Guardando...' : 'Guardar Estadísticas' }}
                     </button>
                 </section>
+
+                <!-- Testimonials -->
+                <section class="settings-section">
+                    <h2>💬 Testimonios</h2>
+                    <p class="section-desc">Reseñas de clientes que aparecen en el home</p>
+                    
+                    @for (testimonial of testimonials; track testimonial.order; let i = $index) {
+                        <div class="testimonial-row">
+                            <div class="form-group">
+                                <label>Texto del testimonio</label>
+                                <textarea 
+                                    [(ngModel)]="testimonial.text" 
+                                    rows="2"
+                                    class="testimonial-textarea"
+                                ></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Autor</label>
+                                    <input type="text" [(ngModel)]="testimonial.author" placeholder="María G.">
+                                </div>
+                                <div class="form-group small">
+                                    <label>Estrellas (1-5)</label>
+                                    <input type="number" [(ngModel)]="testimonial.stars" min="1" max="5">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <button class="btn-save" (click)="saveTestimonials()" [disabled]="saving()">
+                        {{ saving() ? 'Guardando...' : 'Guardar Testimonios' }}
+                    </button>
+                </section>
+
+                <!-- Newsletter Content -->
+                <section class="settings-section">
+                    <h2>📧 Newsletter</h2>
+                    <p class="section-desc">Título y subtítulo de la sección de suscripción</p>
+                    
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" [(ngModel)]="newsletterContent.title" placeholder="ÚNETE AL CREW">
+                    </div>
+                    <div class="form-group">
+                        <label>Subtítulo</label>
+                        <input type="text" [(ngModel)]="newsletterContent.subtitle" placeholder="Suscríbete y recibe descuentos...">
+                    </div>
+                    <button class="btn-save" (click)="saveNewsletterContent()" [disabled]="saving()">
+                        {{ saving() ? 'Guardando...' : 'Guardar Newsletter' }}
+                    </button>
+                </section>
             }
         </div>
     `,
@@ -255,6 +307,23 @@ import {
             max-width: 100%;
         }
 
+        .testimonial-row {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .testimonial-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #fff;
+            resize: vertical;
+            min-height: 60px;
+        }
+
         .btn-save {
             background: linear-gradient(135deg, #00d9ff, #0099ff);
             color: #000;
@@ -326,6 +395,13 @@ export class SiteSettingsComponent implements OnInit {
 
     stats: StatItem[] = [];
 
+    testimonials: Testimonial[] = [];
+
+    newsletterContent: NewsletterContent = {
+        title: '',
+        subtitle: ''
+    };
+
     async ngOnInit(): Promise<void> {
         await this.loadSettings();
     }
@@ -340,6 +416,8 @@ export class SiteSettingsComponent implements OnInit {
             this.contact = { ...this.siteConfig.contactInfo() };
             this.sectionTitles = { ...this.siteConfig.sectionTitles() };
             this.stats = [...this.siteConfig.stats()];
+            this.testimonials = [...this.siteConfig.testimonials()];
+            this.newsletterContent = { ...this.siteConfig.newsletterContent() };
         } finally {
             this.loading.set(false);
         }
@@ -388,6 +466,30 @@ export class SiteSettingsComponent implements OnInit {
 
         if (success) {
             this.toast.success('Estadísticas actualizadas');
+        } else {
+            this.toast.error('Error al guardar');
+        }
+    }
+
+    async saveTestimonials(): Promise<void> {
+        this.saving.set(true);
+        const success = await this.siteConfig.updateConfig('testimonials', this.testimonials);
+        this.saving.set(false);
+
+        if (success) {
+            this.toast.success('Testimonios actualizados');
+        } else {
+            this.toast.error('Error al guardar');
+        }
+    }
+
+    async saveNewsletterContent(): Promise<void> {
+        this.saving.set(true);
+        const success = await this.siteConfig.updateConfig('newsletter_content', this.newsletterContent);
+        this.saving.set(false);
+
+        if (success) {
+            this.toast.success('Newsletter actualizado');
         } else {
             this.toast.error('Error al guardar');
         }

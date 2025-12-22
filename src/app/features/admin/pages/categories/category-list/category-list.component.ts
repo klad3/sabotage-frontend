@@ -29,8 +29,13 @@ import { DbCategory } from '../../../../../core/models/product.model';
                 </div>
             } @else {
                 <div class="categories-grid">
-                    @for (category of categories(); track category.id) {
+                                    @for (category of categories(); track category.id) {
                         <div class="category-card">
+                            @if (category.image_url) {
+                                <div class="card-image">
+                                    <img [src]="category.image_url" [alt]="category.name">
+                                </div>
+                            }
                             <div class="card-header">
                                 <h3>{{ category.name }}</h3>
                                 <span class="slug">/{{ category.slug }}</span>
@@ -78,6 +83,26 @@ import { DbCategory } from '../../../../../core/models/product.model';
                                 <input type="checkbox" [(ngModel)]="formData.is_active">
                                 <span>Categoría Activa</span>
                             </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Imagen de Categoría</label>
+                            <div class="image-upload-area">
+                                @if (imagePreview()) {
+                                    <div class="image-preview">
+                                        <img [src]="imagePreview()" alt="Preview">
+                                        <button type="button" class="remove-image" (click)="removeImage()">✕</button>
+                                    </div>
+                                } @else {
+                                    <div class="upload-placeholder" (click)="imageInput.click()">
+                                        <span class="upload-icon">🖼️</span>
+                                        <span>Clic para subir imagen</span>
+                                    </div>
+                                }
+                                <input #imageInput type="file" accept="image/*" 
+                                       (change)="onImageSelected($event)" 
+                                       style="display: none">
+                            </div>
                         </div>
 
                         <div class="modal-actions">
@@ -208,6 +233,19 @@ import { DbCategory } from '../../../../../core/models/product.model';
             border-color: rgba(254, 202, 87, 0.3);
         }
 
+        .card-image {
+            margin: -20px -20px 16px -20px;
+            border-radius: 16px 16px 0 0;
+            overflow: hidden;
+            height: 150px;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .card-header h3 {
             font-size: 18px;
             font-weight: 600;
@@ -242,6 +280,63 @@ import { DbCategory } from '../../../../../core/models/product.model';
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
+        }
+
+        .image-upload-area {
+            margin-top: 8px;
+        }
+
+        .upload-placeholder {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-placeholder:hover {
+            border-color: #feca57;
+            background: rgba(254, 202, 87, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+        }
+
+        .image-preview {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-image:hover {
+            background: #ff6464;
         }
 
         .status.active {
@@ -431,8 +526,12 @@ export class CategoryListComponent implements OnInit {
         name: '',
         slug: '',
         description: '',
-        is_active: true
+        is_active: true,
+        image_url: '' as string | null
     };
+
+    readonly imagePreview = signal<string | null>(null);
+    private selectedImageFile: File | null = null;
 
     async ngOnInit(): Promise<void> {
         await this.loadCategories();
@@ -454,7 +553,9 @@ export class CategoryListComponent implements OnInit {
 
     openModal(): void {
         this.editingCategory.set(null);
-        this.formData = { name: '', slug: '', description: '', is_active: true };
+        this.formData = { name: '', slug: '', description: '', is_active: true, image_url: null };
+        this.imagePreview.set(null);
+        this.selectedImageFile = null;
         this.showModal.set(true);
     }
 
@@ -464,14 +565,37 @@ export class CategoryListComponent implements OnInit {
             name: category.name,
             slug: category.slug,
             description: category.description || '',
-            is_active: category.is_active
+            is_active: category.is_active,
+            image_url: category.image_url
         };
+        this.imagePreview.set(category.image_url);
+        this.selectedImageFile = null;
         this.showModal.set(true);
     }
 
     closeModal(): void {
         this.showModal.set(false);
         this.editingCategory.set(null);
+        this.imagePreview.set(null);
+        this.selectedImageFile = null;
+    }
+
+    onImageSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        if (input.files && input.files[0]) {
+            this.selectedImageFile = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.imagePreview.set(e.target?.result as string);
+            };
+            reader.readAsDataURL(this.selectedImageFile);
+        }
+    }
+
+    removeImage(): void {
+        this.selectedImageFile = null;
+        this.imagePreview.set(null);
+        this.formData.image_url = null;
     }
 
     async saveCategory(): Promise<void> {
@@ -482,6 +606,13 @@ export class CategoryListComponent implements OnInit {
 
         this.saving.set(true);
         try {
+            // Upload image if selected
+            if (this.selectedImageFile) {
+                const fileName = `${this.formData.slug}-${Date.now()}.${this.selectedImageFile.name.split('.').pop()}`;
+                const imageUrl = await this.supabase.uploadFile('categories', fileName, this.selectedImageFile);
+                this.formData.image_url = imageUrl;
+            }
+
             const editing = this.editingCategory();
             if (editing) {
                 await this.supabase.update<DbCategory>('categories', editing.id, this.formData);

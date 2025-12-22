@@ -1,21 +1,22 @@
-import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { SubscriptionService } from '../../../../core/services/subscription.service';
+import { SiteConfigService } from '../../../../core/services/site-config.service';
 import { COUNTRIES, DISTRICTS_BY_COUNTRY } from '../../../../core/models/product.model';
 
 @Component({
-    selector: 'app-newsletter',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, ReactiveFormsModule],
-    template: `
+  selector: 'app-newsletter',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, ReactiveFormsModule],
+  template: `
     <!-- Newsletter Section -->
     <section class="py-12 md:py-20 px-5 md:px-10 bg-black border-t-[3px] border-sabotage-light">
       <div class="max-w-[800px] mx-auto text-center">
         <h2 class="text-3xl md:text-5xl font-extrabold mb-5 tracking-wide">
-          ÚNETE AL CREW
+          {{ siteConfig.newsletterContent().title }}
         </h2>
         <p class="text-base md:text-xl mb-8 text-sabotage-muted">
-          Suscríbete y recibe descuentos exclusivos, lanzamientos y más
+          {{ siteConfig.newsletterContent().subtitle }}
         </p>
 
         <form
@@ -243,116 +244,121 @@ import { COUNTRIES, DISTRICTS_BY_COUNTRY } from '../../../../core/models/product
       </div>
     }
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
-export class NewsletterComponent {
-    private readonly fb = inject(FormBuilder);
-    private readonly subscriptionService = inject(SubscriptionService);
+export class NewsletterComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly subscriptionService = inject(SubscriptionService);
+  readonly siteConfig = inject(SiteConfigService);
 
-    email = '';
-    readonly countries = COUNTRIES;
+  email = '';
+  readonly countries = COUNTRIES;
 
-    readonly isModalOpen = signal(false);
-    readonly isSubmitting = signal(false);
-    readonly errorMessage = signal<string | null>(null);
-    readonly selectedCountry = signal<string | null>(null);
-    readonly wordCount = signal(0);
+  async ngOnInit(): Promise<void> {
+    await this.siteConfig.loadConfigs();
+  }
 
-    readonly subscriptionForm: FormGroup = this.fb.group({
-        firstName: ['', [Validators.required, Validators.pattern(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/)]],
-        lastName: ['', [Validators.required, Validators.pattern(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/)]],
-        age: ['', [Validators.required, Validators.min(13), Validators.max(120)]],
-        phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9,15}$/)]],
-        country: ['', Validators.required],
-        district: ['', Validators.required],
-        nationality: ['', [Validators.required, Validators.pattern(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/)]],
-        comments: ['']
+  readonly isModalOpen = signal(false);
+  readonly isSubmitting = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+  readonly selectedCountry = signal<string | null>(null);
+  readonly wordCount = signal(0);
+
+  readonly subscriptionForm: FormGroup = this.fb.group({
+    firstName: ['', [Validators.required, Validators.pattern(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/)]],
+    lastName: ['', [Validators.required, Validators.pattern(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/)]],
+    age: ['', [Validators.required, Validators.min(13), Validators.max(120)]],
+    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9,15}$/)]],
+    country: ['', Validators.required],
+    district: ['', Validators.required],
+    nationality: ['', [Validators.required, Validators.pattern(/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/)]],
+    comments: ['']
+  });
+
+  constructor() {
+    // Watch for country changes to update districts
+    this.subscriptionForm.get('country')?.valueChanges.subscribe((country) => {
+      this.selectedCountry.set(country);
+      this.subscriptionForm.get('district')?.setValue('');
     });
 
-    constructor() {
-        // Watch for country changes to update districts
-        this.subscriptionForm.get('country')?.valueChanges.subscribe((country) => {
-            this.selectedCountry.set(country);
-            this.subscriptionForm.get('district')?.setValue('');
-        });
+    // Watch for comments changes to count words
+    this.subscriptionForm.get('comments')?.valueChanges.subscribe((value) => {
+      if (value) {
+        const words = value.trim().split(/\s+/).filter((w: string) => w.length > 0);
+        this.wordCount.set(words.length);
+      } else {
+        this.wordCount.set(0);
+      }
+    });
+  }
 
-        // Watch for comments changes to count words
-        this.subscriptionForm.get('comments')?.valueChanges.subscribe((value) => {
-            if (value) {
-                const words = value.trim().split(/\s+/).filter((w: string) => w.length > 0);
-                this.wordCount.set(words.length);
-            } else {
-                this.wordCount.set(0);
-            }
-        });
+  readonly availableDistricts = () => {
+    const country = this.selectedCountry();
+    return country ? (DISTRICTS_BY_COUNTRY[country] || []) : [];
+  };
+
+  openSubscriptionModal(): void {
+    if (!this.email || !this.email.includes('@')) {
+      return;
+    }
+    this.isModalOpen.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeModal(event?: MouseEvent): void {
+    if (event && event.target !== event.currentTarget) {
+      return;
+    }
+    this.isModalOpen.set(false);
+    document.body.style.overflow = 'auto';
+    this.errorMessage.set(null);
+    this.subscriptionForm.reset();
+  }
+
+  async submitSubscription(): Promise<void> {
+    if (!this.subscriptionForm.valid) {
+      this.subscriptionForm.markAllAsTouched();
+      this.errorMessage.set('Por favor completa todos los campos requeridos');
+      return;
     }
 
-    readonly availableDistricts = () => {
-        const country = this.selectedCountry();
-        return country ? (DISTRICTS_BY_COUNTRY[country] || []) : [];
+    // Check word count
+    if (this.wordCount() > 200) {
+      this.errorMessage.set('Los comentarios no pueden exceder las 200 palabras');
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    const formValue = this.subscriptionForm.value;
+    const subscriber = {
+      email: this.email,
+      firstName: formValue.firstName,
+      lastName: formValue.lastName,
+      age: parseInt(formValue.age, 10),
+      phone: formValue.phone,
+      country: formValue.country,
+      district: formValue.district,
+      nationality: formValue.nationality,
+      comments: formValue.comments || 'Sin comentarios'
     };
 
-    openSubscriptionModal(): void {
-        if (!this.email || !this.email.includes('@')) {
-            return;
-        }
-        this.isModalOpen.set(true);
-        document.body.style.overflow = 'hidden';
+    try {
+      await this.subscriptionService.subscribe(subscriber);
+      this.isSubmitting.set(false);
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        this.closeModal();
+        this.email = '';
+      }, 2000);
+    } catch {
+      this.isSubmitting.set(false);
+      this.errorMessage.set('Error al procesar la suscripción. Por favor intenta de nuevo.');
     }
-
-    closeModal(event?: MouseEvent): void {
-        if (event && event.target !== event.currentTarget) {
-            return;
-        }
-        this.isModalOpen.set(false);
-        document.body.style.overflow = 'auto';
-        this.errorMessage.set(null);
-        this.subscriptionForm.reset();
-    }
-
-    async submitSubscription(): Promise<void> {
-        if (!this.subscriptionForm.valid) {
-            this.subscriptionForm.markAllAsTouched();
-            this.errorMessage.set('Por favor completa todos los campos requeridos');
-            return;
-        }
-
-        // Check word count
-        if (this.wordCount() > 200) {
-            this.errorMessage.set('Los comentarios no pueden exceder las 200 palabras');
-            return;
-        }
-
-        this.isSubmitting.set(true);
-        this.errorMessage.set(null);
-
-        const formValue = this.subscriptionForm.value;
-        const subscriber = {
-            email: this.email,
-            firstName: formValue.firstName,
-            lastName: formValue.lastName,
-            age: parseInt(formValue.age, 10),
-            phone: formValue.phone,
-            country: formValue.country,
-            district: formValue.district,
-            nationality: formValue.nationality,
-            comments: formValue.comments || 'Sin comentarios'
-        };
-
-        try {
-            await this.subscriptionService.subscribe(subscriber);
-            this.isSubmitting.set(false);
-
-            // Close modal after a short delay
-            setTimeout(() => {
-                this.closeModal();
-                this.email = '';
-            }, 2000);
-        } catch {
-            this.isSubmitting.set(false);
-            this.errorMessage.set('Error al procesar la suscripción. Por favor intenta de nuevo.');
-        }
-    }
+  }
 }

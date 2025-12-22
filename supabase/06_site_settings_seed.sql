@@ -73,7 +73,25 @@ VALUES ('footer', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
+-- Testimonios
+INSERT INTO site_config (key, value)
+VALUES ('testimonials', '[
+    {"stars": 5, "text": "La calidad de las prendas es increíble! El oversize fit es perfecto y la tela super cómoda. Definitivamente volveré a comprar.", "author": "María G.", "order": 1},
+    {"stars": 5, "text": "Me encanta el estilo urbano que tienen. Los diseños son únicos y la atención al cliente es de primera. 100% recomendado!", "author": "Carlos R.", "order": 2},
+    {"stars": 5, "text": "Mejor relación calidad-precio imposible. Las prendas llegaron súper rápido y son tal cual se ven en las fotos. SABOTAGE rules!", "author": "Andrea L.", "order": 3}
+]'::jsonb)
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
+
+-- Contenido del Newsletter
+INSERT INTO site_config (key, value)
+VALUES ('newsletter_content', '{
+    "title": "ÚNETE AL CREW",
+    "subtitle": "Suscríbete y recibe descuentos exclusivos, lanzamientos y más"
+}'::jsonb)
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
+
 -- ============================================
 -- VERIFICAR INSERCIÓN
 -- ============================================
 -- SELECT * FROM site_config;
+
