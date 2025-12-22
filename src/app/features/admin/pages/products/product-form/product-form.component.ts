@@ -691,9 +691,10 @@ export class ProductFormComponent implements OnInit {
             // Upload image if new file selected
             if (this.selectedFile) {
                 const fileName = `${Date.now()}-${this.selectedFile.name}`;
-                const path = await this.supabase.uploadFile('products', fileName, this.selectedFile);
-                if (path) {
-                    imageUrl = this.supabase.getPublicUrl('products', path);
+                // uploadFile returns the full public URL directly
+                const uploadedUrl = await this.supabase.uploadFile('products', fileName, this.selectedFile);
+                if (uploadedUrl) {
+                    imageUrl = uploadedUrl;
                 }
             }
 
