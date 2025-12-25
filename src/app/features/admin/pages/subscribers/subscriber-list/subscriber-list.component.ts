@@ -47,7 +47,11 @@ import { DbSubscriber } from '../../../../../core/models/product.model';
                                 <th>Nombre</th>
                                 <th>Email</th>
                                 <th>Teléfono</th>
+                                <th>Edad</th>
                                 <th>País</th>
+                                <th>Distrito</th>
+                                <th>Nacionalidad</th>
+                                <th>Comentarios</th>
                                 <th>Fecha</th>
                             </tr>
                         </thead>
@@ -60,7 +64,11 @@ import { DbSubscriber } from '../../../../../core/models/product.model';
                                     </td>
                                     <td class="email-cell">{{ sub.email }}</td>
                                     <td>{{ sub.phone || '-' }}</td>
+                                    <td>{{ sub.age || '-' }}</td>
                                     <td>{{ sub.country || '-' }}</td>
+                                    <td>{{ sub.district || '-' }}</td>
+                                    <td>{{ sub.nationality || '-' }}</td>
+                                    <td class="comments-cell" [title]="sub.comments || ''">{{ truncateComments(sub.comments) }}</td>
                                     <td class="date-cell">{{ formatDate(sub.created_at) }}</td>
                                 </tr>
                             }
@@ -244,13 +252,23 @@ import { DbSubscriber } from '../../../../../core/models/product.model';
             font-size: 13px;
         }
 
+        .comments-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            cursor: help;
+        }
+
         @media (max-width: 768px) {
             .subscribers-table {
                 overflow-x: auto;
             }
 
             table {
-                min-width: 600px;
+                min-width: 1000px;
             }
         }
     `],
@@ -312,15 +330,23 @@ export class SubscriberListComponent implements OnInit {
         });
     }
 
+    truncateComments(comments: string | null): string {
+        if (!comments) return '-';
+        return comments.length > 30 ? comments.substring(0, 30) + '...' : comments;
+    }
+
     exportCsv(): void {
-        const headers = ['Nombre', 'Apellido', 'Email', 'Teléfono', 'País', 'Distrito', 'Fecha'];
+        const headers = ['Nombre', 'Apellido', 'Email', 'Teléfono', 'Edad', 'País', 'Distrito', 'Nacionalidad', 'Comentarios', 'Fecha'];
         const rows = this.subscribers().map(s => [
             s.first_name,
             s.last_name,
             s.email,
             s.phone || '',
+            s.age?.toString() || '',
             s.country || '',
             s.district || '',
+            s.nationality || '',
+            `"${(s.comments || '').replace(/"/g, '""')}"`,
             new Date(s.created_at).toLocaleDateString()
         ]);
 
