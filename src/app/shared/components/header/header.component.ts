@@ -20,11 +20,11 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
           aria-label="Abrir menú de navegación"
         >
           @if (isMobileMenuOpen()) {
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 icon-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           } @else {
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 icon-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           }
@@ -82,46 +82,47 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
 
       <!-- Mobile Menu Dropdown -->
       @if (isMobileMenuOpen()) {
-        <nav class="md:hidden bg-sabotage-dark border-t border-sabotage-border animate-[slideDown_0.2s_ease]">
-          <div class="flex flex-col py-4">
+        <div 
+          class="md:hidden absolute top-full left-0 right-0 bg-black px-4 py-4 shadow-xl border-b border-sabotage-border mobile-menu-overlay"
+          style="z-index: -1"
+        >
+          <nav class="flex flex-col -mx-4">
             <a
               routerLink="/"
               (click)="closeMobileMenu()"
-              class="px-6 py-3 text-sabotage-light font-bold text-lg hover:bg-sabotage-gray transition-colors"
+              class="px-4 py-3 text-white font-bold text-lg hover:bg-sabotage-gray transition-colors"
             >
               INICIO
             </a>
-            <a
-              href="#"
-              class="px-6 py-3 text-sabotage-border font-bold text-lg cursor-not-allowed"
-              (click)="$event.preventDefault()"
-            >
+            <span class="px-4 py-3 text-sabotage-muted font-bold text-lg cursor-not-allowed">
               QUIENES SOMOS
-            </a>
+            </span>
+            <span class="px-4 py-3 text-sabotage-muted font-bold text-lg cursor-not-allowed">
+              PRODUCTOS
+            </span>
             
-            <!-- Products Section -->
-            <div class="border-t border-sabotage-border mt-2 pt-2">
-              <span class="px-6 py-2 text-sabotage-muted text-sm font-semibold uppercase">Productos</span>
+            <!-- Product Sub-items -->
+            <div class="flex flex-col">
               <a
                 routerLink="/oversize"
                 (click)="closeMobileMenu()"
-                class="px-8 py-3 text-sabotage-light font-bold hover:bg-sabotage-gray transition-colors block"
+                class="py-2.5 pl-10 pr-4 text-white font-medium hover:bg-sabotage-gray transition-colors"
               >
                 OVERSIZE
               </a>
               <a
                 routerLink="/polos-clasicos"
                 (click)="closeMobileMenu()"
-                class="px-8 py-3 text-sabotage-light font-bold hover:bg-sabotage-gray transition-colors block"
+                class="py-2.5 pl-10 pr-4 text-white font-medium hover:bg-sabotage-gray transition-colors"
               >
                 POLOS CLÁSICOS
               </a>
-              <span class="px-8 py-3 text-sabotage-border block">TOTEBAGS</span>
-              <span class="px-8 py-3 text-sabotage-border block">POLERAS</span>
-              <span class="px-8 py-3 text-sabotage-border block">GORROS</span>
+              <span class="py-2.5 pl-10 pr-4 text-sabotage-muted cursor-not-allowed">TOTEBAGS</span>
+              <span class="py-2.5 pl-10 pr-4 text-sabotage-muted cursor-not-allowed">POLERAS</span>
+              <span class="py-2.5 pl-10 pr-4 text-sabotage-muted cursor-not-allowed">GORROS</span>
             </div>
-          </div>
-        </nav>
+          </nav>
+        </div>
       }
 
       <!-- Mobile Search Overlay -->
@@ -225,19 +226,20 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
     </header>
   `,
   styles: [`
-    .mobile-search-overlay {
-      animation: revealFromHeader 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    .mobile-search-overlay,
+    .mobile-menu-overlay {
+      animation: revealFromHeader 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       transform-origin: top center;
     }
 
     @keyframes revealFromHeader {
       0% {
         opacity: 0;
-        transform: translateY(-100%);
+        clip-path: inset(0 0 100% 0);
       }
       100% {
         opacity: 1;
-        transform: translateY(0);
+        clip-path: inset(0 0 0 0);
       }
     }
 
