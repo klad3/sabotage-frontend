@@ -82,6 +82,7 @@ export class SiteConfigService {
     // Cached configurations
     private readonly configs = signal<Map<string, unknown>>(new Map());
     private loaded = false;
+    private pendingLoad: Promise<void> | null = null;
 
     // ============================================
     // Public Getters (with defaults)
@@ -102,8 +103,25 @@ export class SiteConfigService {
     // ============================================
 
     async loadConfigs(): Promise<void> {
+        // Already loaded, return immediately
         if (this.loaded) return;
 
+        // If a load is in progress, wait for it
+        if (this.pendingLoad) {
+            return this.pendingLoad;
+        }
+
+        // Start new load and store the promise
+        this.pendingLoad = this.doLoadConfigs();
+
+        try {
+            await this.pendingLoad;
+        } finally {
+            this.pendingLoad = null;
+        }
+    }
+
+    private async doLoadConfigs(): Promise<void> {
         try {
             const configs = await this.supabase.getAll<DbSiteConfig>('site_config');
             const configMap = new Map<string, unknown>();

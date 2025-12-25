@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, inject, ChangeDetectionStrategy, OnInit, effect } from '@angular/core';
+import { Component, input, signal, computed, inject, ChangeDetectionStrategy, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProductFiltersComponent } from './components/product-filters/product-filters.component';
 import { ProductGridComponent } from './components/product-grid/product-grid.component';
@@ -47,7 +47,7 @@ import { Product, FilterState, DbCategory } from '../../core/models/product.mode
     class: 'block'
   }
 })
-export class CatalogComponent implements OnInit {
+export class CatalogComponent {
   private readonly productService = inject(ProductService);
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
@@ -72,17 +72,13 @@ export class CatalogComponent implements OnInit {
   });
 
   constructor() {
-    // Effect to load category when slug changes
+    // Effect to load category when slug changes (handles initial load too)
     effect(() => {
       const slug = this.category();
       if (slug) {
         this.loadCategoryData(slug);
       }
     });
-  }
-
-  async ngOnInit(): Promise<void> {
-    await this.loadCategoryData(this.category());
   }
 
   private async loadCategoryData(slug: string): Promise<void> {
