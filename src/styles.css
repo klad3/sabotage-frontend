@@ -257,3 +257,17 @@
   background: var(--color-sabotage-light);
   color: var(--color-sabotage-black);
 }
+
+/* ============================================
+   Social Embed Overrides (Global)
+   These override styles injected by external scripts
+   ============================================ */
+.tiktok-embed {
+  margin: 0 !important;
+}
+
+.instagram-media {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}

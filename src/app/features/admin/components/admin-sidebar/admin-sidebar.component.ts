@@ -322,6 +322,7 @@ export class AdminSidebarComponent {
             icon: '🎨',
             items: [
                 { label: 'Banners', route: '/admin/banners', icon: '🖼️' },
+                { label: 'Redes Sociales', route: '/admin/social-embeds', icon: '📱' },
                 { label: 'Configuración', route: '/admin/settings', icon: '⚙️' }
             ]
         }

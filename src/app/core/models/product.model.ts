@@ -307,4 +307,19 @@ export interface NewsletterContent {
     subtitle: string;
 }
 
+// ============================================
+// Social Media Embeds
+// ============================================
 
+export type SocialPlatform = 'instagram' | 'tiktok' | 'facebook' | 'youtube' | 'twitter' | 'other';
+
+export interface DbSocialEmbed {
+    id: string;
+    platform: SocialPlatform;
+    embed_code: string;
+    title: string;
+    display_order: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}

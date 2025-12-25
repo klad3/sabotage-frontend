@@ -66,6 +66,12 @@ export const ADMIN_ROUTES: Routes = [
                 loadComponent: () => import('./pages/settings/site-settings/site-settings.component')
                     .then(m => m.SiteSettingsComponent),
                 title: 'SABOTAGE Admin - Configuración'
+            },
+            {
+                path: 'social-embeds',
+                loadComponent: () => import('./pages/social-embeds/social-embed-list/social-embed-list.component')
+                    .then(m => m.SocialEmbedListComponent),
+                title: 'SABOTAGE Admin - Redes Sociales'
             }
         ]
     }
