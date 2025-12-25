@@ -1,27 +1,21 @@
 -- ============================================
 -- SABOTAGE E-COMMERCE - STORAGE POLICIES
--- Ejecutar en: Supabase SQL Editor
+-- Archivo: 03_storage_policies.sql
 -- ============================================
--- IMPORTANTE: Antes de ejecutar este script debes crear los buckets
--- en Supabase Dashboard > Storage > New bucket:
---
--- 1. Bucket: "products" (marcar como Public bucket)
--- 2. Bucket: "banners" (marcar como Public bucket)
--- 3. Bucket: "categories" (marcar como Public bucket)
---
--- Después de crear los 3 buckets, ejecuta este script.
+-- PRERREQUISITO: Crear buckets públicos en Dashboard:
+-- 1. products
+-- 2. banners
+-- 3. categories
 -- ============================================
 
 -- ============================================
 -- BUCKET: PRODUCTS
 -- ============================================
 
--- Lectura pública
 CREATE POLICY "Product images are publicly accessible"
     ON storage.objects FOR SELECT
     USING (bucket_id = 'products');
 
--- Subir (solo autenticados)
 CREATE POLICY "Authenticated users can upload product images"
     ON storage.objects FOR INSERT
     WITH CHECK (
@@ -29,7 +23,6 @@ CREATE POLICY "Authenticated users can upload product images"
         AND auth.role() = 'authenticated'
     );
 
--- Actualizar (solo autenticados)
 CREATE POLICY "Authenticated users can update product images"
     ON storage.objects FOR UPDATE
     USING (
@@ -37,7 +30,6 @@ CREATE POLICY "Authenticated users can update product images"
         AND auth.role() = 'authenticated'
     );
 
--- Eliminar (solo autenticados)
 CREATE POLICY "Authenticated users can delete product images"
     ON storage.objects FOR DELETE
     USING (
@@ -49,12 +41,10 @@ CREATE POLICY "Authenticated users can delete product images"
 -- BUCKET: BANNERS
 -- ============================================
 
--- Lectura pública
 CREATE POLICY "Banner images are publicly accessible"
     ON storage.objects FOR SELECT
     USING (bucket_id = 'banners');
 
--- Subir (solo autenticados)
 CREATE POLICY "Authenticated users can upload banner images"
     ON storage.objects FOR INSERT
     WITH CHECK (
@@ -62,7 +52,6 @@ CREATE POLICY "Authenticated users can upload banner images"
         AND auth.role() = 'authenticated'
     );
 
--- Actualizar (solo autenticados)
 CREATE POLICY "Authenticated users can update banner images"
     ON storage.objects FOR UPDATE
     USING (
@@ -70,7 +59,6 @@ CREATE POLICY "Authenticated users can update banner images"
         AND auth.role() = 'authenticated'
     );
 
--- Eliminar (solo autenticados)
 CREATE POLICY "Authenticated users can delete banner images"
     ON storage.objects FOR DELETE
     USING (
@@ -82,12 +70,10 @@ CREATE POLICY "Authenticated users can delete banner images"
 -- BUCKET: CATEGORIES
 -- ============================================
 
--- Lectura pública
 CREATE POLICY "Category images are publicly accessible"
     ON storage.objects FOR SELECT
     USING (bucket_id = 'categories');
 
--- Subir (solo autenticados)
 CREATE POLICY "Authenticated users can upload category images"
     ON storage.objects FOR INSERT
     WITH CHECK (
@@ -95,7 +81,6 @@ CREATE POLICY "Authenticated users can upload category images"
         AND auth.role() = 'authenticated'
     );
 
--- Actualizar (solo autenticados)
 CREATE POLICY "Authenticated users can update category images"
     ON storage.objects FOR UPDATE
     USING (
@@ -103,7 +88,6 @@ CREATE POLICY "Authenticated users can update category images"
         AND auth.role() = 'authenticated'
     );
 
--- Eliminar (solo autenticados)
 CREATE POLICY "Authenticated users can delete category images"
     ON storage.objects FOR DELETE
     USING (

@@ -1,13 +1,33 @@
 -- ============================================
--- SABOTAGE E-COMMERCE - SITE SETTINGS SEED
--- Ejecutar en: Supabase SQL Editor
+-- SABOTAGE E-COMMERCE - SEED DATA
+-- Archivo: 04_seed_data.sql
 -- ============================================
--- Este script inserta las configuraciones iniciales del sitio.
--- Ejecutar DESPUÉS de 01_create_tables.sql
+-- Ejecutar después de 01, 02 y 03
+-- Contiene datos iniciales para el sitio
 -- ============================================
 
--- Limpiar configuraciones existentes (opcional, comentar si no deseas)
--- DELETE FROM site_config;
+-- ============================================
+-- CATEGORÍAS INICIALES
+-- ============================================
+
+INSERT INTO categories (name, slug, description, display_order) VALUES
+    ('Oversize', 'oversize', 'Polos oversize con estilo urbano', 1),
+    ('Clásico', 'clasico', 'Polos clásicos que nunca pasan de moda', 2)
+ON CONFLICT (slug) DO NOTHING;
+
+-- ============================================
+-- CÓDIGOS DE DESCUENTO INICIALES
+-- ============================================
+
+INSERT INTO discount_codes (code, percentage, is_active) VALUES
+    ('SABOTAGE10', 10, true),
+    ('PRIMERACOMPRA', 15, true),
+    ('VERANO2024', 20, true)
+ON CONFLICT (code) DO NOTHING;
+
+-- ============================================
+-- CONFIGURACIÓN DEL SITIO
+-- ============================================
 
 -- Barra de anuncios
 INSERT INTO site_config (key, value)
@@ -32,7 +52,7 @@ VALUES ('contact_info', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
--- Branding (logo y favicon)
+-- Branding
 INSERT INTO site_config (key, value)
 VALUES ('branding', '{
     "logo_url": null,
@@ -43,7 +63,7 @@ VALUES ('branding', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
--- Estadísticas de la sección Stats
+-- Estadísticas
 INSERT INTO site_config (key, value)
 VALUES ('stats', '[
     {"value": "15K+", "label": "Clientes felices", "numeric_value": 15, "suffix": "K+", "order": 1},
@@ -63,7 +83,7 @@ VALUES ('section_titles', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
--- Configuración del footer
+-- Footer
 INSERT INTO site_config (key, value)
 VALUES ('footer', '{
     "about_text": "SABOTAGE es una marca peruana de ropa urbana que combina diseño único con calidad premium.",
@@ -73,16 +93,7 @@ VALUES ('footer', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
--- Testimonios
-INSERT INTO site_config (key, value)
-VALUES ('testimonials', '[
-    {"stars": 5, "text": "La calidad de las prendas es increíble! El oversize fit es perfecto y la tela super cómoda. Definitivamente volveré a comprar.", "author": "María G.", "order": 1},
-    {"stars": 5, "text": "Me encanta el estilo urbano que tienen. Los diseños son únicos y la atención al cliente es de primera. 100% recomendado!", "author": "Carlos R.", "order": 2},
-    {"stars": 5, "text": "Mejor relación calidad-precio imposible. Las prendas llegaron súper rápido y son tal cual se ven en las fotos. SABOTAGE rules!", "author": "Andrea L.", "order": 3}
-]'::jsonb)
-ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
-
--- Contenido del Newsletter
+-- Newsletter content
 INSERT INTO site_config (key, value)
 VALUES ('newsletter_content', '{
     "title": "ÚNETE AL CREW",
@@ -90,8 +101,19 @@ VALUES ('newsletter_content', '{
 }'::jsonb)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
--- ============================================
--- VERIFICAR INSERCIÓN
--- ============================================
--- SELECT * FROM site_config;
+-- Shipping y WhatsApp (legacy keys)
+INSERT INTO site_config (key, value) VALUES
+    ('shipping_cost', '{"amount": 15.00, "currency": "PEN"}'),
+    ('whatsapp', '{"phone_number": "51933866156"}'),
+    ('social_links', '{"instagram": "", "facebook": "", "tiktok": ""}')
+ON CONFLICT (key) DO NOTHING;
 
+-- ============================================
+-- REVIEWS INICIALES (TESTIMONIOS)
+-- ============================================
+
+INSERT INTO reviews (author, text, stars, status, is_featured, created_at) VALUES
+    ('María G.', 'La calidad es increíble, superó mis expectativas. El material es premium y los acabados son perfectos.', 5, 'approved', true, NOW() - INTERVAL '3 days'),
+    ('Carlos R.', 'Los diseños son únicos, no encuentras esto en ningún otro lugar. Me encanta el estilo urbano.', 5, 'approved', true, NOW() - INTERVAL '2 days'),
+    ('Andrea L.', 'Excelente relación calidad-precio. El envío fue rápido y el empaque muy cuidado.', 5, 'approved', true, NOW() - INTERVAL '1 day')
+ON CONFLICT DO NOTHING;

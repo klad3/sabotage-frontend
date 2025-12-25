@@ -1,79 +1,112 @@
-# SABOTAGE E-Commerce - Supabase Setup
+# Supabase - Configuración de Base de Datos
 
-## 📋 Orden de Ejecución para Proyecto Nuevo
+## Orden de Ejecución
 
-### Paso 1: Crear Buckets de Storage
+Ejecutar los scripts en este **orden exacto** al configurar un nuevo proyecto de Supabase:
 
-En Supabase Dashboard > Storage > New bucket:
+### Paso 0: Crear Buckets de Storage (Dashboard)
 
-| Bucket | Tipo | Descripción |
-|--------|------|-------------|
-| `products` | Público | Imágenes de productos |
-| `banners` | Público | Imágenes de banners |
-| `categories` | Público | Imágenes de categorías |
+Antes de ejecutar cualquier SQL, ve a **Supabase Dashboard > Storage** y crea estos buckets **públicos**:
 
-> ⚠️ **IMPORTANTE**: Marcar "Public bucket" en cada uno.
+1. `products`
+2. `banners`
+3. `categories`
+
+### Paso 1: Schema (Tablas)
+
+```bash
+# Ejecutar en SQL Editor
+01_schema.sql
+```
+
+Crea todas las tablas, índices, triggers y funciones.
+
+### Paso 2: Políticas RLS
+
+```bash
+# Ejecutar en SQL Editor
+02_rls_policies.sql
+```
+
+Configura Row Level Security y permisos para cada tabla.
+
+### Paso 3: Storage Policies
+
+```bash
+# Ejecutar en SQL Editor
+03_storage_policies.sql
+```
+
+Configura políticas de acceso para los buckets de imágenes.
+
+### Paso 4: Datos Iniciales (Opcional)
+
+```bash
+# Ejecutar en SQL Editor
+04_seed_data.sql
+```
+
+Inserta categorías, códigos de descuento, configuración del sitio y reviews iniciales.
 
 ---
 
-### Paso 2: Ejecutar Scripts SQL
+## Estructura de Archivos
 
-En Supabase Dashboard > SQL Editor, ejecutar **en orden**:
+```
+supabase/
+├── 01_schema.sql          # Todas las tablas y triggers
+├── 02_rls_policies.sql    # Políticas de seguridad
+├── 03_storage_policies.sql # Políticas de storage
+├── 04_seed_data.sql       # Datos iniciales
+└── README.md              # Este archivo
+```
 
-1. **`01_create_tables.sql`** - Crea todas las tablas
-2. **`02_seed_data.sql`** - Datos iniciales (categorías, descuentos)
-3. **`03_rls_policies.sql`** - Políticas de seguridad de tablas
-4. **`04_storage_policies.sql`** - Políticas de seguridad de buckets
-5. **`05_banners_table.sql`** - Tabla de banners + RLS
-6. **`06_site_settings_seed.sql`** - Configuraciones del sitio
+## Tablas Incluidas
 
----
+| Tabla | Descripción |
+|-------|-------------|
+| `categories` | Categorías de productos |
+| `products` | Productos del catálogo |
+| `discount_codes` | Códigos de descuento |
+| `subscribers` | Suscriptores del newsletter |
+| `orders` | Órdenes/Pedidos |
+| `site_config` | Configuración del sitio (JSONB) |
+| `banners` | Banners del carrusel |
+| `reviews` | Reseñas de clientes |
+| `social_embeds` | Embeds de redes sociales |
+| `carts` | Carritos de compra (server-side) |
+| `cart_items` | Items del carrito |
 
-### Paso 3: Configurar Variables de Entorno
+## Notas Importantes
 
-Crear `environments/environment.ts`:
+### Órdenes (orders)
+
+La tabla `orders` tiene **RLS deshabilitado** y usa GRANTs directos porque hay problemas conocidos con el insert anónimo en Supabase RLS. Los permisos son:
+
+- `anon`: INSERT, SELECT
+- `authenticated`: ALL
+
+### Carritos (carts)
+
+Los carritos son anónimos (por dispositivo) y se limpian automáticamente después de 7 días de inactividad. Para ejecutar la limpieza:
+
+```sql
+-- Manual
+SELECT cleanup_old_carts();
+
+-- Con pg_cron (Plan Pro)
+SELECT cron.schedule('cleanup-carts', '0 3 * * *', 'SELECT cleanup_old_carts();');
+```
+
+## Credenciales
+
+Después de configurar, actualiza `environment.ts`:
 
 ```typescript
 export const environment = {
-  production: false,
-  supabaseUrl: 'https://TU-PROYECTO.supabase.co',
-  supabaseAnonKey: 'TU-ANON-KEY'
+  supabase: {
+    url: 'https://TU-PROYECTO.supabase.co',
+    anonKey: 'TU-ANON-KEY',
+  }
 };
 ```
-
----
-
-## 📁 Estructura de Archivos SQL
-
-| Archivo | Contenido |
-|---------|-----------|
-| `01_create_tables.sql` | Tablas: categories, products, orders, subscribers, discount_codes, site_config |
-| `02_seed_data.sql` | Datos iniciales: categorías y códigos de descuento |
-| `03_rls_policies.sql` | Row Level Security para todas las tablas |
-| `04_storage_policies.sql` | Políticas para buckets: products, banners, categories |
-| `05_banners_table.sql` | Tabla banners + sus políticas RLS |
-| `06_site_settings_seed.sql` | Configuraciones del sitio (anuncios, contacto, etc.) |
-
----
-
-## ✅ Verificación
-
-Después de ejecutar todo, verifica:
-
-```sql
--- Verificar tablas
-SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
-
--- Verificar categorías
-SELECT * FROM categories;
-
--- Verificar configuraciones
-SELECT * FROM site_config;
-```
-
----
-
-## 🔐 Autenticación
-
-Para acceder al admin, crea un usuario desde:
-- Supabase Dashboard > Authentication > Users > Add user
