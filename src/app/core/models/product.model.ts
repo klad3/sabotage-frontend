@@ -3,7 +3,7 @@ export interface Product {
     name: string;
     description: string;
     price: number;
-    category: 'oversize' | 'clasico';
+    category: string;
     type: 'simple' | 'personalizado';
     color: string;
     theme: string;
@@ -267,8 +267,7 @@ export function dbProductToProduct(dbProduct: DbProduct, categorySlug?: string):
         name: dbProduct.name,
         description: dbProduct.description || '',
         price: dbProduct.price,
-        category: (categorySlug as 'oversize' | 'clasico') ||
-            (dbProduct.category?.slug as 'oversize' | 'clasico') || 'oversize',
+        category: categorySlug || dbProduct.category?.slug || 'oversize',
         type: dbProduct.type,
         color: dbProduct.color || '',
         theme: dbProduct.theme || '',

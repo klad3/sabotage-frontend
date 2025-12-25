@@ -12,7 +12,10 @@
 
 INSERT INTO categories (name, slug, description, display_order) VALUES
     ('Oversize', 'oversize', 'Polos oversize con estilo urbano', 1),
-    ('Clásico', 'clasico', 'Polos clásicos que nunca pasan de moda', 2)
+    ('Clásico', 'clasico', 'Polos clásicos que nunca pasan de moda', 2),
+    ('Totebags', 'totebags', 'Bolsos urbanos para el día a día', 3),
+    ('Poleras', 'poleras', 'Abrigo con estilo urbano', 4),
+    ('Gorros', 'gorros', 'Completa tu look urbano', 5);
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================

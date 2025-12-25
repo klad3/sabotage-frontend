@@ -118,9 +118,27 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
               >
                 POLOS CLÁSICOS
               </a>
-              <span class="py-2.5 pl-10 pr-4 text-sabotage-muted cursor-not-allowed">TOTEBAGS</span>
-              <span class="py-2.5 pl-10 pr-4 text-sabotage-muted cursor-not-allowed">POLERAS</span>
-              <span class="py-2.5 pl-10 pr-4 text-sabotage-muted cursor-not-allowed">GORROS</span>
+              <a
+                routerLink="/totebags"
+                (click)="closeMobileMenu()"
+                class="py-2.5 pl-10 pr-4 text-white font-medium hover:bg-sabotage-gray transition-colors"
+              >
+                TOTEBAGS
+              </a>
+              <a
+                routerLink="/poleras"
+                (click)="closeMobileMenu()"
+                class="py-2.5 pl-10 pr-4 text-white font-medium hover:bg-sabotage-gray transition-colors"
+              >
+                POLERAS
+              </a>
+              <a
+                routerLink="/gorros"
+                (click)="closeMobileMenu()"
+                class="py-2.5 pl-10 pr-4 text-white font-medium hover:bg-sabotage-gray transition-colors"
+              >
+                GORROS
+              </a>
             </div>
           </nav>
         </div>
@@ -193,9 +211,27 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
                 >
                   POLOS CLÁSICOS
                 </a>
-                <span class="px-5 py-3 text-sabotage-border cursor-not-allowed text-center">TOTEBAGS</span>
-                <span class="px-5 py-3 text-sabotage-border cursor-not-allowed text-center">POLERAS</span>
-                <span class="px-5 py-3 text-sabotage-border cursor-not-allowed text-center">GORROS</span>
+                <a
+                  routerLink="/totebags"
+                  routerLinkActive="bg-sabotage-gray text-white"
+                  class="px-5 py-3 text-sabotage-muted hover:text-white hover:bg-sabotage-gray transition-colors text-center"
+                >
+                  TOTEBAGS
+                </a>
+                <a
+                  routerLink="/poleras"
+                  routerLinkActive="bg-sabotage-gray text-white"
+                  class="px-5 py-3 text-sabotage-muted hover:text-white hover:bg-sabotage-gray transition-colors text-center"
+                >
+                  POLERAS
+                </a>
+                <a
+                  routerLink="/gorros"
+                  routerLinkActive="bg-sabotage-gray text-white"
+                  class="px-5 py-3 text-sabotage-muted hover:text-white hover:bg-sabotage-gray transition-colors text-center"
+                >
+                  GORROS
+                </a>
               </div>
             </div>
           </div>

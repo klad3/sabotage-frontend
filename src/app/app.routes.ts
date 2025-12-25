@@ -27,6 +27,36 @@ export const routes: Routes = [
         }
     },
     {
+        path: 'totebags',
+        loadComponent: () => import('./features/catalog/catalog.component').then(m => m.CatalogComponent),
+        title: 'SABOTAGE - Totebags',
+        data: {
+            category: 'totebags',
+            title: 'TOTEBAGS',
+            subtitle: 'Bolsos urbanos para el día a día'
+        }
+    },
+    {
+        path: 'poleras',
+        loadComponent: () => import('./features/catalog/catalog.component').then(m => m.CatalogComponent),
+        title: 'SABOTAGE - Poleras',
+        data: {
+            category: 'poleras',
+            title: 'POLERAS',
+            subtitle: 'Abrigo con estilo urbano'
+        }
+    },
+    {
+        path: 'gorros',
+        loadComponent: () => import('./features/catalog/catalog.component').then(m => m.CatalogComponent),
+        title: 'SABOTAGE - Gorros',
+        data: {
+            category: 'gorros',
+            title: 'GORROS',
+            subtitle: 'Completa tu look urbano'
+        }
+    },
+    {
         path: 'producto/:slug',
         loadComponent: () => import('./features/product/product-detail.component').then(m => m.ProductDetailComponent),
         title: 'SABOTAGE - Producto'

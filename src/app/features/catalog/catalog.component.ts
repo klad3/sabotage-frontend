@@ -1,9 +1,10 @@
-import { Component, input, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, signal, computed, inject, ChangeDetectionStrategy, OnInit, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProductFiltersComponent } from './components/product-filters/product-filters.component';
 import { ProductGridComponent } from './components/product-grid/product-grid.component';
 import { ProductService } from '../../core/services/product.service';
-import { Product, FilterState } from '../../core/models/product.model';
+import { SupabaseService } from '../../core/services/supabase.service';
+import { Product, FilterState, DbCategory } from '../../core/models/product.model';
 
 @Component({
   selector: 'app-catalog',
@@ -12,12 +13,18 @@ import { Product, FilterState } from '../../core/models/product.model';
   template: `
     <!-- Page Header -->
     <section class="text-center py-12 md:py-16 px-5 bg-sabotage-dark border-b-2 border-sabotage-border">
-      <h2 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-wider">
-        {{ title() }}
-      </h2>
-      <p class="text-base md:text-lg text-sabotage-muted">
-        {{ subtitle() }}
-      </p>
+      @if (loadingCategory()) {
+        <!-- Skeleton while loading -->
+        <div class="h-10 md:h-14 w-64 md:w-96 bg-sabotage-gray/50 rounded mx-auto mb-4 animate-pulse"></div>
+        <div class="h-5 md:h-6 w-48 md:w-80 bg-sabotage-gray/30 rounded mx-auto animate-pulse"></div>
+      } @else {
+        <h2 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-wider">
+          {{ categoryData()?.name?.toUpperCase() || title() }}
+        </h2>
+        <p class="text-base md:text-lg text-sabotage-muted">
+          {{ categoryData()?.description || subtitle() }}
+        </p>
+      }
     </section>
 
     <!-- Main Content -->
@@ -40,15 +47,20 @@ import { Product, FilterState } from '../../core/models/product.model';
     class: 'block'
   }
 })
-export class CatalogComponent {
+export class CatalogComponent implements OnInit {
   private readonly productService = inject(ProductService);
+  private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
 
-  // Inputs for different catalog types
-  readonly category = input<'oversize' | 'clasico'>('oversize');
+  // Inputs for different catalog types (fallback values)
+  readonly category = input<string>('oversize');
   readonly title = input('POLOS OVERSIZE');
   readonly subtitle = input('Descubre nuestra colección de polos con estilo urbano');
   readonly showTypeFilter = input(true);
+
+  // Category data from database
+  readonly categoryData = signal<DbCategory | null>(null);
+  readonly loadingCategory = signal(true);
 
   // State
   readonly currentFilters = signal<FilterState>({
@@ -58,6 +70,37 @@ export class CatalogComponent {
     themes: [],
     priceRange: { min: 0, max: 150 }
   });
+
+  constructor() {
+    // Effect to load category when slug changes
+    effect(() => {
+      const slug = this.category();
+      if (slug) {
+        this.loadCategoryData(slug);
+      }
+    });
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.loadCategoryData(this.category());
+  }
+
+  private async loadCategoryData(slug: string): Promise<void> {
+    this.loadingCategory.set(true);
+    try {
+      const categories = await this.supabase.getAll<DbCategory>('categories', {
+        filters: [{ column: 'slug', operator: 'eq', value: slug }]
+      });
+
+      if (categories.length > 0) {
+        this.categoryData.set(categories[0]);
+      }
+    } catch (error) {
+      console.warn('Could not load category data:', error);
+    } finally {
+      this.loadingCategory.set(false);
+    }
+  }
 
   // Get products for current category
   private readonly categoryProducts = computed(() =>
@@ -110,4 +153,3 @@ export class CatalogComponent {
     this.router.navigate(['/producto', slug]);
   }
 }
-
