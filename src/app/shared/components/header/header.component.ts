@@ -8,7 +8,7 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, SearchBarComponent],
   template: `
-    <header class="sticky top-0 z-50 bg-black border-b-2 border-sabotage-border">
+    <header class="sticky top-0 z-50 bg-black border-b-2 border-sabotage-border overflow-visible">
       <!-- Mobile Header -->
       <div class="flex md:hidden items-center justify-between px-4 py-4">
         <!-- Hamburger Button -->
@@ -41,16 +41,23 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
 
         <!-- Right side icons -->
         <div class="flex items-center gap-1">
-          <!-- Search Icon -->
+          <!-- Search Icon (toggles to X when open) -->
           <button
             type="button"
             (click)="toggleMobileSearch()"
             class="text-sabotage-light p-2 hover:bg-sabotage-gray rounded-lg transition-colors"
+            [attr.aria-expanded]="isMobileSearchOpen()"
             aria-label="Buscar"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            @if (isMobileSearchOpen()) {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            } @else {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            }
           </button>
 
           <!-- Cart Icon -->
@@ -119,7 +126,10 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
 
       <!-- Mobile Search Overlay -->
       @if (isMobileSearchOpen()) {
-        <div class="md:hidden absolute top-full left-0 right-0 bg-black px-4 py-3 shadow-lg">
+        <div 
+          class="md:hidden absolute top-full left-0 right-0 bg-black px-4 py-3 shadow-xl border-b border-sabotage-border mobile-search-overlay"
+          style="z-index: -1"
+        >
           <app-search-bar [expanded]="true" />
         </div>
       }
@@ -214,6 +224,23 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
       </div>
     </header>
   `,
+  styles: [`
+    .mobile-search-overlay {
+      animation: revealFromHeader 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      transform-origin: top center;
+    }
+
+    @keyframes revealFromHeader {
+      0% {
+        opacity: 0;
+        transform: translateY(-100%);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `],
   host: {
     class: 'block'
   }
