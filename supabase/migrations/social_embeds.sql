@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS social_embeds (
     title VARCHAR(255) NOT NULL,
     display_order INTEGER NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT true,
+    display_mode VARCHAR(20) NOT NULL DEFAULT 'cropped',  -- 'cropped', 'custom', 'original'
+    custom_height INTEGER DEFAULT NULL,  -- height in px when display_mode is 'custom'
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

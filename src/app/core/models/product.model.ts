@@ -312,6 +312,7 @@ export interface NewsletterContent {
 // ============================================
 
 export type SocialPlatform = 'instagram' | 'tiktok' | 'facebook' | 'youtube' | 'twitter' | 'other';
+export type EmbedDisplayMode = 'cropped' | 'custom' | 'original';
 
 export interface DbSocialEmbed {
     id: string;
@@ -320,6 +321,8 @@ export interface DbSocialEmbed {
     title: string;
     display_order: number;
     is_active: boolean;
+    display_mode: EmbedDisplayMode;  // cropped (570px), custom, or original
+    custom_height: number | null;     // height in px when display_mode is 'custom'
     created_at: string;
     updated_at: string;
 }

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@ang
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../../../core/services/supabase.service';
 import { ToastService } from '../../../../../core/services/toast.service';
-import { DbSocialEmbed, SocialPlatform } from '../../../../../core/models/product.model';
+import { DbSocialEmbed, SocialPlatform, EmbedDisplayMode } from '../../../../../core/models/product.model';
 
 const PLATFORM_OPTIONS: { value: SocialPlatform; label: string; icon: string }[] = [
     { value: 'instagram', label: 'Instagram', icon: '📸' },
@@ -11,6 +11,12 @@ const PLATFORM_OPTIONS: { value: SocialPlatform; label: string; icon: string }[]
     { value: 'youtube', label: 'YouTube', icon: '▶️' },
     { value: 'twitter', label: 'Twitter/X', icon: '🐦' },
     { value: 'other', label: 'Otro', icon: '🔗' }
+];
+
+const DISPLAY_MODE_OPTIONS: { value: EmbedDisplayMode; label: string; description: string }[] = [
+    { value: 'cropped', label: 'Recortado', description: 'Altura fija de 570px, oculta el pie de página' },
+    { value: 'custom', label: 'Personalizado', description: 'Define una altura personalizada en pixeles' },
+    { value: 'original', label: 'Original', description: 'Usa el tamaño por defecto de la red social' }
 ];
 
 @Component({
@@ -115,6 +121,31 @@ const PLATFORM_OPTIONS: { value: SocialPlatform; label: string; icon: string }[]
                                 rows="8"></textarea>
                             <small class="help-text">Copia el código embed completo de la red social</small>
                         </div>
+
+                        <div class="form-group">
+                            <label for="embed-display-mode">Modo de visualización</label>
+                            <select id="embed-display-mode" [(ngModel)]="formData.display_mode">
+                                @for (mode of displayModeOptions; track mode.value) {
+                                    <option [value]="mode.value">
+                                        {{ mode.label }}
+                                    </option>
+                                }
+                            </select>
+                            <small class="help-text">{{ getDisplayModeDescription(formData.display_mode) }}</small>
+                        </div>
+
+                        @if (formData.display_mode === 'custom') {
+                            <div class="form-group">
+                                <label for="embed-custom-height">Altura personalizada (px)</label>
+                                <input 
+                                    type="number" 
+                                    id="embed-custom-height" 
+                                    [(ngModel)]="formData.custom_height" 
+                                    min="200" 
+                                    max="1000"
+                                    placeholder="570">
+                            </div>
+                        }
 
                         <div class="form-row">
                             <div class="form-group">
@@ -526,13 +557,16 @@ export class SocialEmbedListComponent implements OnInit {
     readonly embedToDelete = signal<DbSocialEmbed | null>(null);
 
     readonly platformOptions = PLATFORM_OPTIONS;
+    readonly displayModeOptions = DISPLAY_MODE_OPTIONS;
 
     formData = {
         title: '',
         platform: 'instagram' as SocialPlatform,
         embed_code: '',
         display_order: 0,
-        is_active: true
+        is_active: true,
+        display_mode: 'cropped' as EmbedDisplayMode,
+        custom_height: 570 as number | null
     };
 
     async ngOnInit(): Promise<void> {
@@ -570,6 +604,10 @@ export class SocialEmbedListComponent implements OnInit {
             : cleanCode;
     }
 
+    getDisplayModeDescription(mode: EmbedDisplayMode): string {
+        return DISPLAY_MODE_OPTIONS.find(m => m.value === mode)?.description ?? '';
+    }
+
     openModal(): void {
         this.editingEmbed.set(null);
         this.formData = {
@@ -577,7 +615,9 @@ export class SocialEmbedListComponent implements OnInit {
             platform: 'instagram',
             embed_code: '',
             display_order: 0,
-            is_active: true
+            is_active: true,
+            display_mode: 'cropped',
+            custom_height: 570
         };
         this.showModal.set(true);
     }
@@ -589,7 +629,9 @@ export class SocialEmbedListComponent implements OnInit {
             platform: embed.platform,
             embed_code: embed.embed_code,
             display_order: embed.display_order,
-            is_active: embed.is_active
+            is_active: embed.is_active,
+            display_mode: embed.display_mode || 'cropped',
+            custom_height: embed.custom_height || 570
         };
         this.showModal.set(true);
     }
@@ -617,7 +659,9 @@ export class SocialEmbedListComponent implements OnInit {
                 platform: this.formData.platform,
                 embed_code: this.formData.embed_code.trim(),
                 display_order: this.formData.display_order,
-                is_active: this.formData.is_active
+                is_active: this.formData.is_active,
+                display_mode: this.formData.display_mode,
+                custom_height: this.formData.display_mode === 'custom' ? this.formData.custom_height : null
             };
 
             const editing = this.editingEmbed();

@@ -32,7 +32,12 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
             } @else if (embeds().length > 0) {
                 <div class="embeds-grid">
                     @for (embed of embeds(); track embed.id) {
-                        <div class="embed-container" [attr.data-platform]="embed.platform">
+                        <div 
+                            class="embed-container" 
+                            [attr.data-platform]="embed.platform"
+                            [attr.data-display-mode]="embed.display_mode || 'cropped'"
+                            [style.height]="getContainerHeight(embed)"
+                        >
                             <div 
                                 class="embed-item" 
                                 [innerHTML]="getSafeHtml(embed.embed_code)"
@@ -128,19 +133,21 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
         .embed-container {
             flex: 0 0 auto;
             width: 325px;
-            height: 570px;
             max-width: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: hidden;
             border-radius: 12px;
             background: #fff;
-            /* Hide scrollbar but keep functionality */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
         }
 
-        .embed-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+        /* For original display mode, allow natural height */
+        .embed-container[data-display-mode="original"] {
+            overflow: visible;
+        }
+
+        /* For cropped/custom modes, hide overflow and scrollbar */
+        .embed-container[data-display-mode="cropped"],
+        .embed-container[data-display-mode="custom"] {
+            overflow: hidden;
         }
 
         .embed-item {
@@ -251,6 +258,19 @@ export class SocialFeedComponent implements OnInit {
     // Remove any script tags from the embed code (we load them ourselves)
     const cleanHtml = html.replace(/<script[^>]*>.*?<\/script>/gi, '');
     return this.sanitizer.bypassSecurityTrustHtml(cleanHtml);
+  }
+
+  getContainerHeight(embed: DbSocialEmbed): string {
+    const mode = embed.display_mode || 'cropped';
+    switch (mode) {
+      case 'custom':
+        return `${embed.custom_height || 570}px`;
+      case 'original':
+        return 'auto';
+      case 'cropped':
+      default:
+        return '570px';
+    }
   }
 
   private processEmbeds(): void {
