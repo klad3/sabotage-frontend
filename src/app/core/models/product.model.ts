@@ -13,6 +13,41 @@ export interface Product {
     createdAt?: Date;
 }
 
+// ============================================
+// Cart Types (Supabase-based)
+// ============================================
+
+/** Cart stored in Supabase */
+export interface DbCart {
+    id: string;
+    created_at: string;
+    updated_at: string;
+}
+
+/** Cart item stored in Supabase */
+export interface DbCartItem {
+    id: string;
+    cart_id: string;
+    product_id: string;
+    size: string;
+    quantity: number;
+    created_at: string;
+    updated_at: string;
+}
+
+/** Cart item with joined product data (prices come from DB) */
+export interface HydratedCartItem {
+    id: string;
+    cart_id: string;
+    product_id: string;
+    size: string;
+    quantity: number;
+    created_at: string;
+    updated_at: string;
+    product: DbProduct;
+}
+
+/** @deprecated Use HydratedCartItem instead - kept for migration compatibility */
 export interface CartItem {
     id: string;
     productId: string;

@@ -139,12 +139,12 @@ export class CartSummaryComponent {
           customer_name: 'Cliente WhatsApp', // Se actualiza después por el admin
           customer_phone: 'Pendiente', // Se actualiza cuando contacta por WhatsApp
           items: cartData.items.map(item => ({
-            id: item.productId,
-            name: item.name,
+            id: item.product_id,
+            name: item.product.name,
             size: item.size,
             quantity: item.quantity,
-            price: item.price,
-            image: item.imageUrl
+            price: item.product.price,
+            image: item.product.image_url || undefined
           })),
           subtotal: cartData.subtotal,
           shipping: cartData.shipping,
@@ -164,10 +164,10 @@ export class CartSummaryComponent {
       message += '*PRODUCTOS:*\n';
 
       cartData.items.forEach((item, index) => {
-        message += `\n${index + 1}. ${item.name}\n`;
+        message += `\n${index + 1}. ${item.product.name}\n`;
         message += `   • Talla: ${item.size}\n`;
         message += `   • Cantidad: ${item.quantity}\n`;
-        message += `   • Precio: S/ ${(item.price * item.quantity).toFixed(2)}\n`;
+        message += `   • Precio: S/ ${(item.product.price * item.quantity).toFixed(2)}\n`;
       });
 
       message += '\n*RESUMEN:*\n';
@@ -195,7 +195,7 @@ export class CartSummaryComponent {
       }
 
       // Clear cart automatically after sending
-      this.cartService.clearCart();
+      await this.cartService.clearCart();
 
     } catch (error) {
       console.error('Error creating order:', error);
@@ -215,15 +215,15 @@ export class CartSummaryComponent {
     return `SAB-${year}${month}${day}-${random}`;
   }
 
-  private openWhatsAppFallback(cartData: ReturnType<typeof this.cartService.getCartData>): void {
+  private async openWhatsAppFallback(cartData: ReturnType<typeof this.cartService.getCartData>): Promise<void> {
     let message = '🛍️ *NUEVO PEDIDO - SABOTAGE*\n\n';
     message += '*PRODUCTOS:*\n';
 
     cartData.items.forEach((item, index) => {
-      message += `\n${index + 1}. ${item.name}\n`;
+      message += `\n${index + 1}. ${item.product.name}\n`;
       message += `   • Talla: ${item.size}\n`;
       message += `   • Cantidad: ${item.quantity}\n`;
-      message += `   • Precio: S/ ${(item.price * item.quantity).toFixed(2)}\n`;
+      message += `   • Precio: S/ ${(item.product.price * item.quantity).toFixed(2)}\n`;
     });
 
     message += '\n*RESUMEN:*\n';
@@ -245,7 +245,7 @@ export class CartSummaryComponent {
       window.open(whatsappUrl, '_blank');
     }
 
-    this.cartService.clearCart();
+    await this.cartService.clearCart();
   }
 }
 

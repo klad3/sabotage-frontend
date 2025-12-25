@@ -1,6 +1,6 @@
 import { Component, input, output, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Product, CartItem } from '../../../../core/models/product.model';
+import { Product } from '../../../../core/models/product.model';
 import { CartService } from '../../../../core/services/cart.service';
 
 @Component({
@@ -177,7 +177,7 @@ export class ProductModalComponent {
     }
   }
 
-  addToCart(): void {
+  async addToCart(): Promise<void> {
     const prod = this.product();
     if (!prod) return;
 
@@ -189,24 +189,18 @@ export class ProductModalComponent {
 
     this.isAdding.set(true);
 
-    const cartItem: Omit<CartItem, 'id'> = {
-      productId: prod.id,
-      name: prod.name,
-      price: prod.price,
-      type: prod.type,
-      size: this.selectedSize,
-      quantity: this.quantity,
-      imageUrl: prod.imageUrl
-    };
+    try {
+      const success = await this.cartService.addItem(prod.id, this.selectedSize, this.quantity);
 
-    this.cartService.addItem(cartItem);
-
-    this.isAdded.set(true);
-    this.isAdding.set(false);
-
-    setTimeout(() => {
-      this.close();
-    }, 1500);
+      if (success) {
+        this.isAdded.set(true);
+        setTimeout(() => {
+          this.close();
+        }, 1500);
+      }
+    } finally {
+      this.isAdding.set(false);
+    }
   }
 
   private resetState(): void {

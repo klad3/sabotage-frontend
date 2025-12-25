@@ -1,28 +1,35 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
-import { CartItem, DISCOUNT_CODES } from '../models/product.model';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { HydratedCartItem, DbProduct, DISCOUNT_CODES } from '../models/product.model';
+import { SupabaseService } from './supabase.service';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-const CART_STORAGE_KEY = 'carrito';
+const CART_ID_KEY = 'cart_id';
 const SHIPPING_COST = 15.00;
 
 @Injectable({
     providedIn: 'root'
 })
 export class CartService {
+    private readonly supabase = inject(SupabaseService);
+
     // State signals
-    private readonly _items = signal<CartItem[]>(this.loadFromStorage());
+    private readonly _cartId = signal<string | null>(this.getStoredCartId());
+    private readonly _items = signal<HydratedCartItem[]>([]);
+    private readonly _isLoading = signal(false);
     private readonly _discountCode = signal<string | null>(null);
 
     // Public readonly signals
     readonly items = this._items.asReadonly();
+    readonly isLoading = this._isLoading.asReadonly();
     readonly discountCode = this._discountCode.asReadonly();
 
-    // Computed values
+    // Computed values - prices ALWAYS come from product.price (secure)
     readonly itemCount = computed(() =>
         this._items().reduce((sum, item) => sum + item.quantity, 0)
     );
 
     readonly subtotal = computed(() =>
-        this._items().reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        this._items().reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
     );
 
     readonly shipping = computed(() =>
@@ -44,73 +51,208 @@ export class CartService {
 
     readonly isEmpty = computed(() => this._items().length === 0);
 
+    /** Get Supabase client, throws if not configured */
+    private get db(): SupabaseClient {
+        const client = this.supabase.client;
+        if (!client) {
+            throw new Error('Supabase is not configured');
+        }
+        return client;
+    }
+
+    /** Check if Supabase is enabled */
+    private get isSupabaseEnabled(): boolean {
+        return this.supabase.isEnabled;
+    }
+
     constructor() {
-        // Auto-save to localStorage when cart changes
-        effect(() => {
-            this.saveToStorage(this._items());
-        });
+        // Load cart on initialization
+        if (this.isSupabaseEnabled) {
+            this.loadCart();
+        }
+    }
+
+    /**
+     * Load cart items from Supabase
+     */
+    async loadCart(): Promise<void> {
+        const cartId = this._cartId();
+        if (!cartId) {
+            this._items.set([]);
+            return;
+        }
+
+        this._isLoading.set(true);
+
+        try {
+            // First check if cart exists
+            const { data: cart, error: cartError } = await this.db
+                .from('carts')
+                .select('id')
+                .eq('id', cartId)
+                .single();
+
+            if (cartError || !cart) {
+                // Cart was deleted (cleanup or manual), create new one
+                this.clearStoredCartId();
+                this._cartId.set(null);
+                this._items.set([]);
+                return;
+            }
+
+            // Load items with product data
+            const { data: items, error } = await this.db
+                .from('cart_items')
+                .select(`
+                    id,
+                    cart_id,
+                    product_id,
+                    size,
+                    quantity,
+                    created_at,
+                    updated_at,
+                    product:products(*)
+                `)
+                .eq('cart_id', cartId);
+
+            if (error || !items) {
+                console.error('Error loading cart:', error);
+                this._items.set([]);
+                return;
+            }
+
+            // Map and filter items - product comes as single object from Supabase join
+            const validItems: HydratedCartItem[] = items
+                .filter(item => item.product != null)
+                .map(item => ({
+                    id: item.id,
+                    cart_id: item.cart_id,
+                    product_id: item.product_id,
+                    size: item.size,
+                    quantity: item.quantity,
+                    created_at: item.created_at,
+                    updated_at: item.updated_at,
+                    product: item.product as unknown as DbProduct
+                }));
+            this._items.set(validItems);
+        } finally {
+            this._isLoading.set(false);
+        }
     }
 
     /**
      * Add an item to the cart
      */
-    addItem(item: Omit<CartItem, 'id'>): void {
-        const items = this._items();
-        const existingItem = items.find(
-            i => i.productId === item.productId && i.size === item.size
-        );
+    async addItem(productId: string, size: string, quantity: number = 1): Promise<boolean> {
+        this._isLoading.set(true);
 
-        if (existingItem) {
-            // Update quantity if item already exists
-            this.updateQuantity(existingItem.id, existingItem.quantity + item.quantity);
-        } else {
-            // Add new item
-            const newItem: CartItem = {
-                ...item,
-                id: this.generateId()
-            };
-            this._items.set([...items, newItem]);
+        try {
+            const cartId = await this.ensureCart();
+
+            // Check if item already exists
+            const existingItem = this._items().find(
+                i => i.product_id === productId && i.size === size
+            );
+
+            if (existingItem) {
+                // Update quantity
+                const newQuantity = Math.min(existingItem.quantity + quantity, 10);
+                return this.updateQuantity(existingItem.id, newQuantity);
+            }
+
+            // Insert new item
+            const { error: insertError } = await this.db
+                .from('cart_items')
+                .insert({
+                    cart_id: cartId,
+                    product_id: productId,
+                    size,
+                    quantity: Math.min(quantity, 10)
+                });
+
+            if (insertError) {
+                console.error('Error adding item:', insertError);
+                return false;
+            }
+
+            // Reload cart to get hydrated items
+            await this.loadCart();
+            return true;
+        } finally {
+            this._isLoading.set(false);
         }
     }
 
     /**
      * Remove an item from the cart
      */
-    removeItem(itemId: string): void {
-        this._items.update(items => items.filter(item => item.id !== itemId));
+    async removeItem(cartItemId: string): Promise<boolean> {
+        this._isLoading.set(true);
+
+        try {
+            const { error: deleteError } = await this.db
+                .from('cart_items')
+                .delete()
+                .eq('id', cartItemId);
+
+            if (deleteError) {
+                console.error('Error removing item:', deleteError);
+                return false;
+            }
+
+            // Update local state
+            this._items.update(items => items.filter(item => item.id !== cartItemId));
+            return true;
+        } finally {
+            this._isLoading.set(false);
+        }
     }
 
     /**
      * Update item quantity
      */
-    updateQuantity(itemId: string, quantity: number): void {
-        if (quantity < 1) quantity = 1;
-        if (quantity > 10) quantity = 10;
+    async updateQuantity(cartItemId: string, quantity: number): Promise<boolean> {
+        const clampedQuantity = Math.max(1, Math.min(quantity, 10));
 
+        // Optimistic update
         this._items.update(items =>
             items.map(item =>
-                item.id === itemId ? { ...item, quantity } : item
+                item.id === cartItemId ? { ...item, quantity: clampedQuantity } : item
             )
         );
+
+        const { error: updateError } = await this.db
+            .from('cart_items')
+            .update({ quantity: clampedQuantity })
+            .eq('id', cartItemId);
+
+        if (updateError) {
+            console.error('Error updating quantity:', updateError);
+            // Rollback on error
+            await this.loadCart();
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * Increase item quantity by 1
      */
-    increaseQuantity(itemId: string): void {
-        const item = this._items().find(i => i.id === itemId);
+    async increaseQuantity(cartItemId: string): Promise<void> {
+        const item = this._items().find(i => i.id === cartItemId);
         if (item && item.quantity < 10) {
-            this.updateQuantity(itemId, item.quantity + 1);
+            await this.updateQuantity(cartItemId, item.quantity + 1);
         }
     }
 
     /**
      * Decrease item quantity by 1
      */
-    decreaseQuantity(itemId: string): void {
-        const item = this._items().find(i => i.id === itemId);
+    async decreaseQuantity(cartItemId: string): Promise<void> {
+        const item = this._items().find(i => i.id === cartItemId);
         if (item && item.quantity > 1) {
-            this.updateQuantity(itemId, item.quantity - 1);
+            await this.updateQuantity(cartItemId, item.quantity - 1);
         }
     }
 
@@ -146,13 +288,28 @@ export class CartService {
     /**
      * Clear the entire cart
      */
-    clearCart(): void {
-        this._items.set([]);
-        this._discountCode.set(null);
+    async clearCart(): Promise<void> {
+        const cartId = this._cartId();
+        if (!cartId) return;
+
+        this._isLoading.set(true);
+
+        try {
+            await this.db
+                .from('cart_items')
+                .delete()
+                .eq('cart_id', cartId);
+
+            this._items.set([]);
+            this._discountCode.set(null);
+        } finally {
+            this._isLoading.set(false);
+        }
     }
 
     /**
      * Get cart data for checkout
+     * Prices are guaranteed to come from the database
      */
     getCartData() {
         return {
@@ -165,28 +322,68 @@ export class CartService {
         };
     }
 
-    private loadFromStorage(): CartItem[] {
-        if (typeof window === 'undefined') return [];
+    /**
+     * Ensure a cart exists, create one if needed
+     */
+    private async ensureCart(): Promise<string> {
+        const existingCartId = this._cartId();
+
+        if (existingCartId) {
+            // Verify cart still exists in DB
+            const { data: cart } = await this.db
+                .from('carts')
+                .select('id')
+                .eq('id', existingCartId)
+                .single();
+
+            if (cart) {
+                return existingCartId;
+            }
+        }
+
+        // Create new cart
+        const { data: newCart, error: createError } = await this.db
+            .from('carts')
+            .insert({})
+            .select('id')
+            .single();
+
+        if (createError || !newCart) {
+            throw new Error('Failed to create cart');
+        }
+
+        this.storeCartId(newCart.id);
+        this._cartId.set(newCart.id);
+        return newCart.id;
+    }
+
+    private getStoredCartId(): string | null {
+        if (typeof window === 'undefined') return null;
 
         try {
-            const stored = localStorage.getItem(CART_STORAGE_KEY);
-            return stored ? JSON.parse(stored) : [];
+            return localStorage.getItem(CART_ID_KEY);
         } catch {
-            return [];
+            return null;
         }
     }
 
-    private saveToStorage(items: CartItem[]): void {
+    private storeCartId(cartId: string): void {
         if (typeof window === 'undefined') return;
 
         try {
-            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+            localStorage.setItem(CART_ID_KEY, cartId);
         } catch (err) {
-            console.error('Failed to save cart to localStorage:', err);
+            console.error('Failed to store cart ID:', err);
         }
     }
 
-    private generateId(): string {
-        return `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    private clearStoredCartId(): void {
+        if (typeof window === 'undefined') return;
+
+        try {
+            localStorage.removeItem(CART_ID_KEY);
+        } catch {
+            // Ignore
+        }
     }
 }

@@ -1,16 +1,16 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
-import { CartItem } from '../../../../core/models/product.model';
+import { HydratedCartItem } from '../../../../core/models/product.model';
 
 @Component({
-    selector: 'app-cart-item',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-cart-item',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <article class="flex flex-col md:flex-row gap-5 bg-sabotage-dark border-2 border-sabotage-border p-5 rounded-lg transition-all duration-300 animate-[slideIn_0.4s_ease] hover:border-[#555]">
       <!-- Product Image -->
       <div class="w-full md:w-[120px] h-[200px] md:h-[120px] flex-shrink-0 bg-sabotage-gray rounded overflow-hidden">
         <img
-          [src]="item().imageUrl"
-          [alt]="item().name"
+          [src]="item().product.image_url"
+          [alt]="item().product.name"
           class="w-full h-full object-cover"
           loading="lazy"
         />
@@ -20,10 +20,10 @@ import { CartItem } from '../../../../core/models/product.model';
       <div class="flex-1 flex flex-col justify-between">
         <div>
           <h3 class="text-lg md:text-xl font-bold mb-2 text-sabotage-light">
-            {{ item().name }}
+            {{ item().product.name }}
           </h3>
           <p class="text-sm text-sabotage-muted">
-            Talla: {{ item().size }} | Tipo: {{ item().type === 'personalizado' ? 'Personalizado' : 'Sin personalizar' }}
+            Talla: {{ item().size }} | Tipo: {{ item().product.type === 'personalizado' ? 'Personalizado' : 'Sin personalizar' }}
           </p>
         </div>
 
@@ -67,13 +67,13 @@ import { CartItem } from '../../../../core/models/product.model';
         </div>
       </div>
 
-      <!-- Price -->
+      <!-- Price (secure: comes from product.price in DB) -->
       <div class="text-xl md:text-2xl font-extrabold text-sabotage-light text-left md:text-right self-start">
-        S/ {{ (item().price * item().quantity).toFixed(2) }}
+        S/ {{ (item().product.price * item().quantity).toFixed(2) }}
       </div>
     </article>
   `,
-    styles: `
+  styles: `
     @keyframes slideIn {
       from {
         opacity: 0;
@@ -85,14 +85,15 @@ import { CartItem } from '../../../../core/models/product.model';
       }
     }
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
 export class CartItemComponent {
-    readonly item = input.required<CartItem>();
+  readonly item = input.required<HydratedCartItem>();
 
-    readonly increase = output<void>();
-    readonly decrease = output<void>();
-    readonly remove = output<void>();
+  readonly increase = output<void>();
+  readonly decrease = output<void>();
+  readonly remove = output<void>();
 }
+
