@@ -128,7 +128,7 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
         .embed-container {
             flex: 0 0 auto;
             width: 325px;
-            height: 580px;
+            height: 570px;
             max-width: 100%;
             overflow-y: auto;
             overflow-x: hidden;
@@ -161,7 +161,7 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
         /* TikTok specific adjustments - crop to show only video */
         .embed-container[data-platform="tiktok"] {
             background: #000;
-            height: 580px;
+            height: 570px;
             overflow: hidden; /* Crop the footer */
         }
 
@@ -175,10 +175,21 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
             max-height: none !important;
         }
 
-        /* Instagram specific adjustments */
+        /* Instagram specific adjustments - crop to show only header + media */
+        .embed-container[data-platform="instagram"] {
+            overflow: hidden; /* Crop the footer */
+        }
+
         .embed-container[data-platform="instagram"] :deep(.instagram-media) {
             border-radius: 0 !important;
             box-shadow: none !important;
+            width: 100% !important;
+            min-width: unset !important;
+            max-width: none !important;
+        }
+
+        .embed-container[data-platform="instagram"] :deep(iframe) {
+            width: 100% !important;
         }
 
         @media (max-width: 400px) {
