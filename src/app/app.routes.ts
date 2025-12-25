@@ -27,6 +27,16 @@ export const routes: Routes = [
         }
     },
     {
+        path: 'producto/:slug',
+        loadComponent: () => import('./features/product/product-detail.component').then(m => m.ProductDetailComponent),
+        title: 'SABOTAGE - Producto'
+    },
+    {
+        path: 'buscar',
+        loadComponent: () => import('./features/search/search-results.component').then(m => m.SearchResultsComponent),
+        title: 'SABOTAGE - Búsqueda'
+    },
+    {
         path: 'carrito',
         loadComponent: () => import('./features/cart/cart.component').then(m => m.CartComponent),
         title: 'SABOTAGE - Carrito'

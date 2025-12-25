@@ -300,4 +300,44 @@ export class ProductService {
     getProductById(id: string): Product | undefined {
         return this._products().find(p => p.id === id);
     }
+
+    /**
+     * Get a single product by slug (URL-friendly ID)
+     */
+    getProductBySlug(slug: string): Product | undefined {
+        return this._products().find(p => this.generateSlug(p.name) === slug || p.id === slug);
+    }
+
+    /**
+     * Search products by name, description, theme, or color
+     */
+    searchProducts(query: string): Product[] {
+        if (!query || query.trim().length < 2) {
+            return [];
+        }
+
+        const searchTerm = query.toLowerCase().trim();
+
+        return this._products().filter(product => {
+            const nameMatch = product.name.toLowerCase().includes(searchTerm);
+            const descMatch = product.description.toLowerCase().includes(searchTerm);
+            const themeMatch = product.theme?.toLowerCase().includes(searchTerm);
+            const colorMatch = product.color.toLowerCase().includes(searchTerm);
+            const categoryMatch = product.category.toLowerCase().includes(searchTerm);
+
+            return nameMatch || descMatch || themeMatch || colorMatch || categoryMatch;
+        });
+    }
+
+    /**
+     * Generate URL-friendly slug from product name
+     */
+    generateSlug(name: string): string {
+        return name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove accents
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
 }

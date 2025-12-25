@@ -1,11 +1,12 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
+import { SearchBarComponent } from '../search-bar/search-bar.component';
 
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, SearchBarComponent],
   template: `
     <header class="flex flex-col md:flex-row justify-between items-center px-5 py-5 bg-black border-b-2 border-sabotage-border sticky top-0 z-50">
       <h1 class="mb-4 md:mb-0">
@@ -72,6 +73,10 @@ import { CartService } from '../../../core/services/cart.service';
           </div>
         </div>
 
+        <!-- Search -->
+        <app-search-bar />
+
+        <!-- Cart -->
         <a
           routerLink="/carrito"
           routerLinkActive="text-white"
@@ -115,3 +120,4 @@ export class HeaderComponent {
 
   readonly cartItemCount = this.cartService.itemCount;
 }
+
