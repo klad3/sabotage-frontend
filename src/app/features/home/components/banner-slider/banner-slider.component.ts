@@ -1,17 +1,12 @@
-import { Component, signal, ChangeDetectionStrategy, OnInit, OnDestroy, inject, computed, HostListener, ElementRef } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, OnInit, OnDestroy, inject, computed, HostListener, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { SupabaseService } from '../../../../core/services/supabase.service';
 import { DbBanner } from '../../../../core/models/product.model';
 
 interface DisplaySlide {
-  imageUrl: string;
+  imageUrl: string | null;
   alt: string;
   link: string | null;
 }
-
-// Placeholder URLs for when no banners exist
-const PLACEHOLDER_DESKTOP = 'https://placehold.co/1920x720';
-const PLACEHOLDER_TABLET = 'https://placehold.co/1024x768';
-const PLACEHOLDER_MOBILE = 'https://placehold.co/400x600';
 
 type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
@@ -20,14 +15,12 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div 
+      #sliderContainer
       class="w-full aspect-[2/3] sm:aspect-[4/3] lg:aspect-[8/3] relative overflow-hidden border-t border-b border-sabotage-light select-none touch-pan-y"
       (mousedown)="onDragStart($event)"
       (mousemove)="onDragMove($event)"
       (mouseup)="onDragEnd()"
       (mouseleave)="onDragEnd()"
-      (touchstart)="onTouchStart($event)"
-      (touchmove)="onTouchMove($event)"
-      (touchend)="onDragEnd()"
     >
       @if (loading()) {
         <div class="w-full h-full flex items-center justify-center bg-sabotage-dark">
@@ -48,12 +41,18 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
               class="h-full flex-shrink-0"
               [style.width.px]="slideWidth()"
             >
-              <img
-                [src]="infiniteSlides()[infiniteSlides().length - 1].imageUrl"
-                [alt]="infiniteSlides()[infiniteSlides().length - 1].alt"
-                class="w-full h-full object-cover"
-                draggable="false"
-              />
+              @if (infiniteSlides()[infiniteSlides().length - 1].imageUrl) {
+                <img
+                  [src]="infiniteSlides()[infiniteSlides().length - 1].imageUrl"
+                  [alt]="infiniteSlides()[infiniteSlides().length - 1].alt"
+                  class="w-full h-full object-cover"
+                  draggable="false"
+                />
+              } @else {
+                <div class="w-full h-full bg-sabotage-gray flex items-center justify-center">
+                  <span class="text-sabotage-muted">Sin imagen</span>
+                </div>
+              }
             </div>
           }
           
@@ -62,26 +61,33 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
               class="h-full flex-shrink-0"
               [style.width.px]="slideWidth()"
             >
-              @if (slide.link) {
-                <a 
-                  [href]="slide.link" 
-                  class="w-full h-full block"
-                  (click)="preventClickDuringDrag($event)"
-                >
+              @if (slide.imageUrl) {
+                @if (slide.link) {
+                  <a 
+                    [href]="slide.link" 
+                    class="w-full h-full block"
+                    (click)="preventClickDuringDrag($event)"
+                  >
+                    <img
+                      [src]="slide.imageUrl"
+                      [alt]="slide.alt"
+                      class="w-full h-full object-cover pointer-events-none"
+                      draggable="false"
+                    />
+                  </a>
+                } @else {
                   <img
                     [src]="slide.imageUrl"
                     [alt]="slide.alt"
-                    class="w-full h-full object-cover pointer-events-none"
+                    class="w-full h-full object-cover"
                     draggable="false"
                   />
-                </a>
+                }
               } @else {
-                <img
-                  [src]="slide.imageUrl"
-                  [alt]="slide.alt"
-                  class="w-full h-full object-cover"
-                  draggable="false"
-                />
+                <!-- Empty placeholder when no image -->
+                <div class="w-full h-full bg-sabotage-gray flex items-center justify-center">
+                  <span class="text-sabotage-muted">Sin imagen</span>
+                </div>
               }
             </div>
           }
@@ -92,12 +98,18 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
               class="h-full flex-shrink-0"
               [style.width.px]="slideWidth()"
             >
-              <img
-                [src]="infiniteSlides()[0].imageUrl"
-                [alt]="infiniteSlides()[0].alt"
-                class="w-full h-full object-cover"
-                draggable="false"
-              />
+              @if (infiniteSlides()[0].imageUrl) {
+                <img
+                  [src]="infiniteSlides()[0].imageUrl"
+                  [alt]="infiniteSlides()[0].alt"
+                  class="w-full h-full object-cover"
+                  draggable="false"
+                />
+              } @else {
+                <div class="w-full h-full bg-sabotage-gray flex items-center justify-center">
+                  <span class="text-sabotage-muted">Sin imagen</span>
+                </div>
+              }
             </div>
           }
         </div>
@@ -125,9 +137,11 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
     class: 'block'
   }
 })
-export class BannerSliderComponent implements OnInit, OnDestroy {
+export class BannerSliderComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly supabase = inject(SupabaseService);
   private readonly elementRef = inject(ElementRef);
+
+  @ViewChild('sliderContainer') sliderContainer!: ElementRef<HTMLDivElement>;
 
   readonly loading = signal(true);
   readonly banners = signal<DbBanner[]>([]);
@@ -142,6 +156,11 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
   private hasDragged = false;
   private isTransitioning = false;
 
+  // Touch event handlers bound to this context
+  private boundTouchStart = this.onTouchStart.bind(this);
+  private boundTouchMove = this.onTouchMove.bind(this);
+  private boundTouchEnd = this.onDragEnd.bind(this);
+
   // Breakpoints
   private readonly MOBILE_MAX = 640;
   private readonly TABLET_MAX = 1024;
@@ -151,21 +170,9 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
     const banners = this.banners();
     const device = this.deviceType();
 
-    const getPlaceholder = (): string => {
-      switch (device) {
-        case 'mobile': return PLACEHOLDER_MOBILE;
-        case 'tablet': return PLACEHOLDER_TABLET;
-        default: return PLACEHOLDER_DESKTOP;
-      }
-    };
-
+    // If no banners, return empty array
     if (banners.length === 0) {
-      const placeholderUrl = getPlaceholder();
-      return [
-        { imageUrl: placeholderUrl, alt: 'Banner 1', link: null },
-        { imageUrl: placeholderUrl, alt: 'Banner 2', link: null },
-        { imageUrl: placeholderUrl, alt: 'Banner 3', link: null }
-      ];
+      return [];
     }
 
     const slides: DisplaySlide[] = [];
@@ -185,7 +192,7 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
       }
 
       slides.push({
-        imageUrl: imageUrl || getPlaceholder(),
+        imageUrl: imageUrl,
         alt: banner.title,
         link: banner.link
       });
@@ -209,8 +216,26 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
     this.startAutoPlay();
   }
 
+  ngAfterViewInit(): void {
+    // Add touch event listeners with passive: false to allow preventDefault
+    const container = this.sliderContainer?.nativeElement;
+    if (container) {
+      container.addEventListener('touchstart', this.boundTouchStart, { passive: true });
+      container.addEventListener('touchmove', this.boundTouchMove, { passive: true });
+      container.addEventListener('touchend', this.boundTouchEnd, { passive: true });
+    }
+  }
+
   ngOnDestroy(): void {
     this.stopAutoPlay();
+
+    // Clean up touch event listeners
+    const container = this.sliderContainer?.nativeElement;
+    if (container) {
+      container.removeEventListener('touchstart', this.boundTouchStart);
+      container.removeEventListener('touchmove', this.boundTouchMove);
+      container.removeEventListener('touchend', this.boundTouchEnd);
+    }
   }
 
   private updateSlideWidth(): void {
