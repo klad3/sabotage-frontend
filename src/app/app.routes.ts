@@ -32,6 +32,11 @@ export const routes: Routes = [
         title: 'SABOTAGE - Carrito'
     },
     {
+        path: 'reviews',
+        loadComponent: () => import('./features/reviews/reviews.component').then(m => m.ReviewsComponent),
+        title: 'SABOTAGE - Reseñas de Clientes'
+    },
+    {
         path: 'admin',
         loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
     },

@@ -314,7 +314,8 @@ export class AdminSidebarComponent {
             title: 'Clientes',
             icon: '👥',
             items: [
-                { label: 'Suscriptores', route: '/admin/subscribers', icon: '📧' }
+                { label: 'Suscriptores', route: '/admin/subscribers', icon: '📧' },
+                { label: 'Reseñas', route: '/admin/reviews', icon: '💬' }
             ]
         },
         {

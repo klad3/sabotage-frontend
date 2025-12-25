@@ -326,3 +326,28 @@ export interface DbSocialEmbed {
     created_at: string;
     updated_at: string;
 }
+
+// ============================================
+// Customer Reviews
+// ============================================
+
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
+
+export interface DbReview {
+    id: string;
+    author: string;
+    text: string;
+    stars: number;
+    status: ReviewStatus;
+    is_featured: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateReviewPayload {
+    author: string;
+    text: string;
+    stars: number;
+    status?: ReviewStatus;
+    is_featured?: boolean;
+}
