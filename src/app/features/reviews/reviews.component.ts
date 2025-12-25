@@ -10,72 +10,110 @@ import { DbReview } from '../../core/models/product.model';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule],
     template: `
-        <main class="reviews-page">
-            <div class="container">
-                <header class="page-header">
-                    <h1>{{ siteConfig.sectionTitles().testimonials }}</h1>
-                    <p class="subtitle">Conoce las experiencias de nuestra comunidad</p>
-                </header>
+        <main class="min-h-screen bg-black">
+            <!-- Header -->
+            <section class="py-12 md:py-20 px-5 md:px-10 max-w-[1400px] mx-auto text-center">
+                <h1 class="text-3xl md:text-6xl font-extrabold mb-4 tracking-wide">
+                    {{ siteConfig.sectionTitles().testimonials }}
+                </h1>
+                <p class="text-base md:text-xl text-sabotage-muted">
+                    Conoce las experiencias de nuestra comunidad
+                </p>
+            </section>
 
-                <!-- Approved Reviews List -->
-                <section class="reviews-list-section">
-                    <h2>💬 Lo que dicen nuestros clientes</h2>
+            <!-- Reviews List -->
+            <section class="px-5 md:px-10 max-w-[1400px] mx-auto pb-12">
+                @if (loading()) {
+                    <div class="text-center py-12 text-sabotage-muted">Cargando reseñas...</div>
+                } @else if (reviews().length === 0) {
+                    <div class="text-center py-12 text-sabotage-muted">
+                        <p>Aún no hay reseñas. ¡Sé el primero en compartir tu experiencia!</p>
+                    </div>
+                } @else {
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                        @for (review of reviews(); track review.id) {
+                            <article class="bg-sabotage-dark border-2 border-sabotage-border p-6 md:p-8 rounded-[10px] transition-all duration-300 hover:border-sabotage-light hover:-translate-y-[5px] hover:shadow-[0_10px_30px_rgba(242,242,242,0.1)]">
+                                <div class="text-xl md:text-2xl mb-4">
+                                    @for (star of getStars(review.stars); track $index) {
+                                        ⭐
+                                    }
+                                </div>
+                                <p class="text-sm md:text-base leading-relaxed mb-4 italic text-[#ccc]">
+                                    "{{ review.text }}"
+                                </p>
+                                <div class="flex justify-between items-center pt-4 border-t border-sabotage-border">
+                                    <span class="text-base font-semibold text-sabotage-light">- {{ review.author }}</span>
+                                    <time class="text-sm text-sabotage-muted">{{ formatDate(review.created_at) }}</time>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
 
-                    @if (loading()) {
-                        <div class="loading">Cargando reseñas...</div>
-                    } @else if (reviews().length === 0) {
-                        <div class="empty-state">
-                            <p>Aún no hay reseñas. ¡Sé el primero en compartir tu experiencia!</p>
-                        </div>
-                    } @else {
-                        <div class="reviews-grid">
-                            @for (review of reviews(); track review.id) {
-                                <article class="review-card">
-                                    <div class="stars">
-                                        @for (star of getStars(review.stars); track $index) {
-                                            ⭐
-                                        }
-                                    </div>
-                                    <p class="text">"{{ review.text }}"</p>
-                                    <footer>
-                                        <span class="author">- {{ review.author }}</span>
-                                        <time class="date">{{ formatDate(review.created_at) }}</time>
-                                    </footer>
-                                </article>
-                            }
-                        </div>
-                    }
-                </section>
-
-                <!-- Submit Review Form -->
-                <section class="submit-form-section">
-                    <h2>✍️ Comparte tu experiencia</h2>
+            <!-- Submit Form Section -->
+            <section class="py-12 md:py-20 px-5 md:px-10 bg-black border-t-[3px] border-sabotage-light">
+                <div class="max-w-[800px] mx-auto text-center">
+                    <h2 class="text-3xl md:text-5xl font-extrabold mb-5 tracking-wide">
+                        ✍️ COMPARTE TU EXPERIENCIA
+                    </h2>
+                    <p class="text-base md:text-xl mb-8 text-sabotage-muted">
+                        Tu opinión nos ayuda a mejorar y ayuda a otros clientes
+                    </p>
 
                     @if (submitted()) {
-                        <div class="success-message">
-                            <span class="icon">✅</span>
-                            <div>
-                                <strong>¡Gracias por tu reseña!</strong>
-                                <p>Tu comentario está pendiente de aprobación y aparecerá pronto.</p>
-                            </div>
+                        <div class="bg-[#22c55e]/10 border-2 border-[#22c55e] text-[#22c55e] p-6 text-center max-w-[600px] mx-auto">
+                            <span class="text-3xl mb-2 block">✅</span>
+                            <strong class="block text-lg mb-1">¡Gracias por tu reseña!</strong>
+                            <p class="text-sabotage-muted">Tu comentario está pendiente de aprobación y aparecerá pronto.</p>
                         </div>
                     } @else {
-                        <form (ngSubmit)="onSubmit()" class="review-form">
-                            <div class="form-group">
-                                <label for="author">Tu nombre</label>
-                                <input
-                                    type="text"
-                                    id="author"
-                                    [(ngModel)]="formData.author"
-                                    name="author"
-                                    placeholder="María G."
-                                    required
-                                    maxlength="50"
-                                >
+                        <form (ngSubmit)="onSubmit()" class="max-w-[600px] mx-auto text-left">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                                <!-- Nombre -->
+                                <div class="flex flex-col">
+                                    <label for="author" class="text-sm font-bold mb-2 tracking-wide">
+                                        TU NOMBRE *
+                                    </label>
+                                    <input
+                                        id="author"
+                                        type="text"
+                                        [(ngModel)]="formData.author"
+                                        name="author"
+                                        placeholder="Ej: María G."
+                                        required
+                                        maxlength="50"
+                                        class="px-5 py-4 bg-sabotage-dark border-2 border-sabotage-border text-sabotage-light text-base transition-all duration-300 focus:outline-none focus:border-sabotage-light"
+                                    />
+                                </div>
+
+                                <!-- Calificación -->
+                                <div class="flex flex-col">
+                                    <label class="text-sm font-bold mb-2 tracking-wide">
+                                        CALIFICACIÓN *
+                                    </label>
+                                    <div class="flex gap-2 py-3" role="radiogroup" aria-label="Calificación">
+                                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                                            <button
+                                                type="button"
+                                                class="text-2xl transition-all duration-200 hover:scale-110"
+                                                [class.opacity-30]="formData.stars < star"
+                                                (click)="formData.stars = star"
+                                                [attr.aria-label]="star + ' estrellas'"
+                                                [attr.aria-pressed]="formData.stars >= star"
+                                            >
+                                                ⭐
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="text">Tu reseña</label>
+                            <!-- Reseña -->
+                            <div class="flex flex-col mb-6">
+                                <label for="text" class="text-sm font-bold mb-2 tracking-wide">
+                                    TU RESEÑA *
+                                </label>
                                 <textarea
                                     id="text"
                                     [(ngModel)]="formData.text"
@@ -84,274 +122,29 @@ import { DbReview } from '../../core/models/product.model';
                                     required
                                     maxlength="500"
                                     rows="4"
+                                    class="px-5 py-4 bg-sabotage-dark border-2 border-sabotage-border text-sabotage-light text-base resize-y min-h-[100px] max-h-[200px] leading-relaxed transition-all duration-300 focus:outline-none focus:border-sabotage-light"
                                 ></textarea>
                             </div>
 
-                            <div class="form-group">
-                                <label>Calificación</label>
-                                <div class="stars-input" role="radiogroup" aria-label="Calificación">
-                                    @for (star of [1, 2, 3, 4, 5]; track star) {
-                                        <button
-                                            type="button"
-                                            class="star-btn"
-                                            [class.active]="formData.stars >= star"
-                                            (click)="formData.stars = star"
-                                            [attr.aria-label]="star + ' estrellas'"
-                                            [attr.aria-pressed]="formData.stars >= star"
-                                        >
-                                            ⭐
-                                        </button>
-                                    }
-                                </div>
+                            <!-- Submit Button -->
+                            <div class="text-center">
+                                <button
+                                    type="submit"
+                                    [disabled]="submitting() || !isFormValid()"
+                                    class="px-8 md:px-10 py-4 md:py-5 bg-sabotage-light text-black font-bold text-base uppercase tracking-wide transition-all duration-300 hover:bg-white hover:scale-105 disabled:bg-[#555] disabled:text-[#888] disabled:cursor-not-allowed disabled:transform-none"
+                                >
+                                    {{ submitting() ? 'ENVIANDO...' : 'ENVIAR RESEÑA' }}
+                                </button>
                             </div>
-
-                            <button
-                                type="submit"
-                                class="btn-submit"
-                                [disabled]="submitting() || !isFormValid()"
-                            >
-                                {{ submitting() ? 'Enviando...' : 'Enviar Reseña' }}
-                            </button>
                         </form>
                     }
-                </section>
-            </div>
+                </div>
+            </section>
         </main>
     `,
-    styles: [`
-        .reviews-page {
-            min-height: 100vh;
-            background: #0a0a0a;
-            padding: 2rem 1rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .page-header h1 {
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #fff, #ccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 1.1rem;
-        }
-
-        /* Form Section */
-        .submit-form-section {
-            background: linear-gradient(145deg, #1a1a1a, #141414);
-            border: 1px solid #333;
-            border-radius: 16px;
-            padding: 2rem;
-            margin-top: 3rem;
-        }
-
-        .submit-form-section h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .review-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: 500;
-            color: #ccc;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 0.875rem 1rem;
-            color: #fff;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #00d9ff;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .stars-input {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .star-btn {
-            background: transparent;
-            border: none;
-            font-size: 1.75rem;
-            cursor: pointer;
-            opacity: 0.3;
-            transition: all 0.2s;
-            padding: 0.25rem;
-        }
-
-        .star-btn:hover,
-        .star-btn.active {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #00d9ff, #0099ff);
-            color: #000;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            align-self: flex-start;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .success-message {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .success-message .icon {
-            font-size: 1.5rem;
-        }
-
-        .success-message strong {
-            display: block;
-            margin-bottom: 0.25rem;
-            color: #22c55e;
-        }
-
-        .success-message p {
-            color: #888;
-            margin: 0;
-        }
-
-        /* Reviews List */
-        .reviews-list-section {
-            margin-top: 2rem;
-        }
-
-        .reviews-list-section h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .review-card {
-            background: linear-gradient(145deg, #1a1a1a, #141414);
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s;
-        }
-
-        .review-card:hover {
-            border-color: #555;
-            transform: translateY(-4px);
-        }
-
-        .review-card .stars {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .review-card .text {
-            color: #ccc;
-            line-height: 1.6;
-            font-style: italic;
-            margin-bottom: 1rem;
-        }
-
-        .review-card footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            border-top: 1px solid #333;
-        }
-
-        .review-card .author {
-            font-weight: 600;
-            color: #00d9ff;
-        }
-
-        .review-card .date {
-            color: #666;
-            font-size: 0.875rem;
-        }
-
-        .loading,
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #888;
-        }
-
-        @media (max-width: 640px) {
-            .reviews-page {
-                padding: 1rem;
-            }
-
-            .submit-form-section {
-                padding: 1.5rem;
-            }
-
-            .reviews-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    `]
+    host: {
+        class: 'block'
+    }
 })
 export class ReviewsComponent implements OnInit {
     private readonly reviewsService = inject(ReviewsService);
