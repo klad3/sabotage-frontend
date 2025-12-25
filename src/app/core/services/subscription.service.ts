@@ -23,8 +23,19 @@ export class SubscriptionService {
         this._error.set(null);
 
         try {
-            // Try to save to Supabase
-            await this.supabase.insert<Subscriber>('subscribers', subscriber);
+            // Convert camelCase to snake_case for database
+            const dbData = {
+                email: subscriber.email,
+                first_name: subscriber.firstName,
+                last_name: subscriber.lastName,
+                age: subscriber.age,
+                phone: subscriber.phone,
+                country: subscriber.country,
+                district: subscriber.district,
+                nationality: subscriber.nationality,
+                comments: subscriber.comments
+            };
+            await this.supabase.insert('subscribers', dbData);
         } catch (err) {
             // Continue even if Supabase fails - we'll still send to WhatsApp
             console.warn('Could not save subscriber to database:', err);
