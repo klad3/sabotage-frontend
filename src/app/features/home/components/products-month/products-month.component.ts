@@ -15,7 +15,7 @@ import { ProductService } from '../../../../core/services/product.service';
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
         @for (product of featuredProducts(); track product.id; let i = $index) {
           <a
-            [routerLink]="product.category === 'oversize' ? '/oversize' : '/polos-clasicos'"
+            [routerLink]="'/producto/' + productService.generateSlug(product.name)"
             class="bg-sabotage-dark border-2 border-sabotage-border p-5 cursor-pointer relative overflow-hidden shimmer hover-lift group"
             [style.animation-delay]="i * 0.15 + 's'"
           >
@@ -41,7 +41,8 @@ import { ProductService } from '../../../../core/services/product.service';
   }
 })
 export class ProductsMonthComponent {
-  private readonly productService = inject(ProductService);
+  readonly productService = inject(ProductService);
 
   readonly featuredProducts = this.productService.featuredProducts;
 }
+

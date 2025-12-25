@@ -1,8 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SiteConfigService } from '../../../../core/services/site-config.service';
-import { SupabaseService } from '../../../../core/services/supabase.service';
-import { DbCategory } from '../../../../core/models/product.model';
+import { ProductService } from '../../../../core/services/product.service';
 
 @Component({
   selector: 'app-categories',
@@ -15,7 +14,7 @@ import { DbCategory } from '../../../../core/models/product.model';
       </h2>
 
       <div class="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-        @for (category of categories(); track category.id) {
+        @for (category of sortedCategories(); track category.id) {
           <a
             [routerLink]="'/' + category.slug"
             class="bg-sabotage-black border-2 border-sabotage-border flex flex-col items-center cursor-pointer transition-all duration-400 relative overflow-hidden group hover:border-sabotage-light hover:scale-[1.03]"
@@ -50,24 +49,14 @@ import { DbCategory } from '../../../../core/models/product.model';
     class: 'block'
   }
 })
-export class CategoriesComponent implements OnInit {
+export class CategoriesComponent {
   readonly siteConfig = inject(SiteConfigService);
-  private readonly supabase = inject(SupabaseService);
+  private readonly productService = inject(ProductService);
 
-  readonly categories = signal<DbCategory[]>([]);
-
-  async ngOnInit(): Promise<void> {
-    await this.siteConfig.loadConfigs();
-    await this.loadCategories();
-  }
-
-  private async loadCategories(): Promise<void> {
-    const data = await this.supabase.getAll<DbCategory>('categories', {
-      orderBy: { column: 'display_order', ascending: true },
-      filters: [{ column: 'is_active', operator: 'eq', value: true }]
-    });
-    this.categories.set(data);
-  }
+  // Use categories from ProductService (already loaded) and sort by display_order
+  readonly sortedCategories = computed(() =>
+    [...this.productService.categories()].sort((a, b) =>
+      (a.display_order ?? 0) - (b.display_order ?? 0)
+    )
+  );
 }
-
-
