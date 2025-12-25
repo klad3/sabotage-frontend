@@ -8,7 +8,8 @@ import {
     Branding,
     StatItem,
     SectionTitles,
-    NewsletterContent
+    NewsletterContent,
+    HeaderConfig
 } from '../../../../../core/models/product.model';
 
 @Component({
@@ -170,6 +171,23 @@ import {
                         {{ saving() ? 'Guardando...' : 'Guardar Newsletter' }}
                     </button>
                 </section>
+
+                <!-- Header Config -->
+                <section class="settings-section">
+                    <h2>🎯 Header</h2>
+                    <p class="section-desc">Configuración del encabezado del sitio</p>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" [(ngModel)]="headerConfigData.is_sticky">
+                            Header fijo (sticky)
+                        </label>
+                        <p class="field-hint">Cuando está activo, el header permanece visible al hacer scroll</p>
+                    </div>
+                    <button class="btn-save" (click)="saveHeaderConfig()" [disabled]="saving()">
+                        {{ saving() ? 'Guardando...' : 'Guardar Header' }}
+                    </button>
+                </section>
             }
         </div>
     `,
@@ -304,6 +322,12 @@ import {
             color: #888;
         }
 
+        .field-hint {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
         @media (max-width: 768px) {
             .stat-row {
                 grid-template-columns: 1fr 1fr;
@@ -356,6 +380,10 @@ export class SiteSettingsComponent implements OnInit {
         subtitle: ''
     };
 
+    headerConfigData: HeaderConfig = {
+        is_sticky: true
+    };
+
     async ngOnInit(): Promise<void> {
         await this.loadSettings();
     }
@@ -372,6 +400,7 @@ export class SiteSettingsComponent implements OnInit {
             this.stats = [...this.siteConfig.stats()];
 
             this.newsletterContent = { ...this.siteConfig.newsletterContent() };
+            this.headerConfigData = { ...this.siteConfig.headerConfig() };
         } finally {
             this.loading.set(false);
         }
@@ -434,6 +463,18 @@ export class SiteSettingsComponent implements OnInit {
 
         if (success) {
             this.toast.success('Newsletter actualizado');
+        } else {
+            this.toast.error('Error al guardar');
+        }
+    }
+
+    async saveHeaderConfig(): Promise<void> {
+        this.saving.set(true);
+        const success = await this.siteConfig.updateConfig('header_config', this.headerConfigData);
+        this.saving.set(false);
+
+        if (success) {
+            this.toast.success('Configuración del header actualizada');
         } else {
             this.toast.error('Error al guardar');
         }

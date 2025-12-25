@@ -1,6 +1,7 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
+import { SiteConfigService } from '../../../core/services/site-config.service';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 
 @Component({
@@ -8,7 +9,7 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, SearchBarComponent],
   template: `
-    <header class="sticky top-0 z-50 bg-black border-b-2 border-sabotage-border overflow-visible">
+    <header class="z-50 bg-black border-b-2 border-sabotage-border overflow-visible">
       <!-- Mobile Header -->
       <div class="flex md:hidden items-center justify-between px-4 py-4">
         <!-- Hamburger Button -->
@@ -263,15 +264,23 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
     }
   `],
   host: {
-    class: 'block'
+    '[class.block]': 'true',
+    '[class.sticky]': 'siteConfig.headerConfig().is_sticky',
+    '[class.top-0]': 'siteConfig.headerConfig().is_sticky',
+    '[class.z-50]': 'siteConfig.headerConfig().is_sticky'
   }
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   private readonly cartService = inject(CartService);
+  readonly siteConfig = inject(SiteConfigService);
 
   readonly cartItemCount = this.cartService.itemCount;
   readonly isMobileMenuOpen = signal(false);
   readonly isMobileSearchOpen = signal(false);
+
+  async ngOnInit(): Promise<void> {
+    await this.siteConfig.loadConfigs();
+  }
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen.update(v => !v);

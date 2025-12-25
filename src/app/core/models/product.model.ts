@@ -342,6 +342,10 @@ export interface NewsletterContent {
     subtitle: string;
 }
 
+export interface HeaderConfig {
+    is_sticky: boolean;
+}
+
 // ============================================
 // Social Media Embeds
 // ============================================

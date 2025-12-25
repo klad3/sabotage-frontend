@@ -9,7 +9,8 @@ import {
     SectionTitles,
     FooterConfig,
     Testimonial,
-    NewsletterContent
+    NewsletterContent,
+    HeaderConfig
 } from '../models/product.model';
 
 // Default values when database is not configured
@@ -70,6 +71,10 @@ const DEFAULT_NEWSLETTER_CONTENT: NewsletterContent = {
     subtitle: 'Suscríbete y recibe descuentos exclusivos, lanzamientos y más'
 };
 
+const DEFAULT_HEADER_CONFIG: HeaderConfig = {
+    is_sticky: true
+};
+
 @Injectable({ providedIn: 'root' })
 export class SiteConfigService {
     private readonly supabase = inject(SupabaseService);
@@ -90,6 +95,7 @@ export class SiteConfigService {
     readonly footer = signal<FooterConfig>(DEFAULT_FOOTER);
     readonly testimonials = signal<Testimonial[]>(DEFAULT_TESTIMONIALS);
     readonly newsletterContent = signal<NewsletterContent>(DEFAULT_NEWSLETTER_CONTENT);
+    readonly headerConfig = signal<HeaderConfig>(DEFAULT_HEADER_CONFIG);
 
     // ============================================
     // Load All Configurations
@@ -143,6 +149,9 @@ export class SiteConfigService {
                 break;
             case 'newsletter_content':
                 this.newsletterContent.set({ ...DEFAULT_NEWSLETTER_CONTENT, ...(value as Partial<NewsletterContent>) });
+                break;
+            case 'header_config':
+                this.headerConfig.set({ ...DEFAULT_HEADER_CONFIG, ...(value as Partial<HeaderConfig>) });
                 break;
         }
     }
