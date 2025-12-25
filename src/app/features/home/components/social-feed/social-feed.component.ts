@@ -158,9 +158,11 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
             margin: 0 !important;
         }
 
-        /* TikTok specific adjustments */
+        /* TikTok specific adjustments - crop to show only video */
         .embed-container[data-platform="tiktok"] {
             background: #000;
+            height: 580px;
+            overflow: hidden; /* Crop the footer */
         }
 
         .embed-container[data-platform="tiktok"] :deep(.tiktok-embed) {
@@ -169,6 +171,8 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
 
         .embed-container[data-platform="tiktok"] :deep(iframe) {
             margin: 0 !important;
+            height: 100% !important;
+            max-height: none !important;
         }
 
         /* Instagram specific adjustments */
