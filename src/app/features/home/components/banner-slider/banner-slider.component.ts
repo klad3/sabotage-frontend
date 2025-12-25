@@ -42,7 +42,22 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
           [style.transform]="'translateX(' + dragOffset() + 'px)'"
           [style.cursor]="isDragging() ? 'grabbing' : 'grab'"
         >
-          @for (slide of displaySlides(); track $index) {
+          <!-- Clone of last slide (for infinite scroll left) -->
+          @if (infiniteSlides().length > 1) {
+            <div 
+              class="h-full flex-shrink-0"
+              [style.width.px]="slideWidth()"
+            >
+              <img
+                [src]="infiniteSlides()[infiniteSlides().length - 1].imageUrl"
+                [alt]="infiniteSlides()[infiniteSlides().length - 1].alt"
+                class="w-full h-full object-cover"
+                draggable="false"
+              />
+            </div>
+          }
+          
+          @for (slide of infiniteSlides(); track $index) {
             <div 
               class="h-full flex-shrink-0"
               [style.width.px]="slideWidth()"
@@ -70,12 +85,27 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
               }
             </div>
           }
+          
+          <!-- Clone of first slide (for infinite scroll right) -->
+          @if (infiniteSlides().length > 1) {
+            <div 
+              class="h-full flex-shrink-0"
+              [style.width.px]="slideWidth()"
+            >
+              <img
+                [src]="infiniteSlides()[0].imageUrl"
+                [alt]="infiniteSlides()[0].alt"
+                class="w-full h-full object-cover"
+                draggable="false"
+              />
+            </div>
+          }
         </div>
 
         <!-- Navigation Dots (only if more than 1 slide) -->
-        @if (displaySlides().length > 1) {
+        @if (infiniteSlides().length > 1) {
           <div class="absolute bottom-4 md:bottom-5 left-1/2 -translate-x-1/2 flex gap-3 md:gap-4 z-10">
-            @for (slide of displaySlides(); track $index; let i = $index) {
+            @for (slide of infiniteSlides(); track $index; let i = $index) {
               <button
                 type="button"
                 (click)="goToSlide(i)"
@@ -110,14 +140,14 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private dragStartX = 0;
   private hasDragged = false;
+  private isTransitioning = false;
 
   // Breakpoints
   private readonly MOBILE_MAX = 640;
   private readonly TABLET_MAX = 1024;
-  // Only 15% of slide width needed to trigger change (very sensitive)
   private readonly DRAG_THRESHOLD_PERCENT = 0.15;
 
-  readonly displaySlides = computed<DisplaySlide[]>(() => {
+  readonly infiniteSlides = computed<DisplaySlide[]>(() => {
     const banners = this.banners();
     const device = this.deviceType();
 
@@ -168,13 +198,14 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
   onResize(): void {
     this.checkDevice();
     this.updateSlideWidth();
-    this.updateDragOffset();
+    this.updateDragOffset(false);
   }
 
   async ngOnInit(): Promise<void> {
     this.checkDevice();
     this.updateSlideWidth();
     await this.loadBanners();
+    this.updateDragOffset(false);
     this.startAutoPlay();
   }
 
@@ -187,8 +218,19 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
     this.slideWidth.set(width);
   }
 
-  private updateDragOffset(): void {
-    this.dragOffset.set(-this.currentSlide() * this.slideWidth());
+  // Get offset including the cloned slide at the start
+  private getSlideOffset(slideIndex: number): number {
+    const slides = this.infiniteSlides();
+    if (slides.length <= 1) {
+      return -slideIndex * this.slideWidth();
+    }
+    // Add 1 to account for the cloned last slide at the beginning
+    return -(slideIndex + 1) * this.slideWidth();
+  }
+
+  private updateDragOffset(animate: boolean): void {
+    const offset = this.getSlideOffset(this.currentSlide());
+    this.dragOffset.set(offset);
   }
 
   private checkDevice(): void {
@@ -220,6 +262,7 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
 
   // Mouse events
   onDragStart(event: MouseEvent): void {
+    if (this.isTransitioning) return;
     this.startDrag(event.clientX);
   }
 
@@ -230,6 +273,7 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
 
   // Touch events
   onTouchStart(event: TouchEvent): void {
+    if (this.isTransitioning) return;
     const touch = event.touches[0];
     this.startDrag(touch.clientX);
   }
@@ -249,20 +293,8 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
 
   private moveDrag(clientX: number): void {
     const delta = clientX - this.dragStartX;
-    const baseOffset = -this.currentSlide() * this.slideWidth();
-
-    // Add resistance at edges
-    const slides = this.displaySlides();
-    let newOffset = baseOffset + delta;
-
-    // Resistance when dragging past first slide
-    if (this.currentSlide() === 0 && delta > 0) {
-      newOffset = baseOffset + delta * 0.3;
-    }
-    // Resistance when dragging past last slide
-    else if (this.currentSlide() === slides.length - 1 && delta < 0) {
-      newOffset = baseOffset + delta * 0.3;
-    }
+    const baseOffset = this.getSlideOffset(this.currentSlide());
+    const newOffset = baseOffset + delta;
 
     this.dragOffset.set(newOffset);
 
@@ -274,31 +306,82 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
   onDragEnd(): void {
     if (!this.isDragging()) return;
 
-    const baseOffset = -this.currentSlide() * this.slideWidth();
+    const baseOffset = this.getSlideOffset(this.currentSlide());
     const currentOffset = this.dragOffset();
     const dragDelta = currentOffset - baseOffset;
-    const slides = this.displaySlides();
+    const slides = this.infiniteSlides();
     const threshold = this.slideWidth() * this.DRAG_THRESHOLD_PERCENT;
 
     let newSlide = this.currentSlide();
 
     if (Math.abs(dragDelta) >= threshold) {
-      if (dragDelta > 0 && this.currentSlide() > 0) {
-        // Dragged right - go to previous
+      if (dragDelta > 0) {
+        // Dragged right - go to previous (with wrap)
         newSlide = this.currentSlide() - 1;
-      } else if (dragDelta < 0 && this.currentSlide() < slides.length - 1) {
-        // Dragged left - go to next
+      } else if (dragDelta < 0) {
+        // Dragged left - go to next (with wrap)
         newSlide = this.currentSlide() + 1;
       }
     }
 
-    this.currentSlide.set(newSlide);
     this.isDragging.set(false);
 
-    // Animate to final position
-    this.dragOffset.set(-newSlide * this.slideWidth());
+    // Handle infinite loop
+    if (newSlide < 0) {
+      // Went before first slide - jump to clone, then to last
+      this.animateToSlide(-1, () => {
+        this.jumpToSlide(slides.length - 1);
+      });
+    } else if (newSlide >= slides.length) {
+      // Went after last slide - jump to clone, then to first
+      this.animateToSlide(slides.length, () => {
+        this.jumpToSlide(0);
+      });
+    } else {
+      this.currentSlide.set(newSlide);
+      this.dragOffset.set(this.getSlideOffset(newSlide));
+    }
 
-    this.startAutoPlay();
+    this.restartAutoPlay();
+  }
+
+  private animateToSlide(index: number, callback: () => void): void {
+    this.isTransitioning = true;
+    const slides = this.infiniteSlides();
+
+    // For clone positions
+    let offset: number;
+    if (index < 0) {
+      // Clone of last slide is at position 0
+      offset = 0;
+    } else if (index >= slides.length) {
+      // Clone of first slide is at position slides.length + 1
+      offset = -(slides.length + 1) * this.slideWidth();
+    } else {
+      offset = this.getSlideOffset(index);
+    }
+
+    this.dragOffset.set(offset);
+
+    // Wait for animation to complete, then jump
+    setTimeout(() => {
+      callback();
+      this.isTransitioning = false;
+    }, 300);
+  }
+
+  private jumpToSlide(index: number): void {
+    // Instantly jump without animation
+    this.isDragging.set(true); // Disable transition
+    this.currentSlide.set(index);
+    this.dragOffset.set(this.getSlideOffset(index));
+
+    // Re-enable transition after a frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.isDragging.set(false);
+      });
+    });
   }
 
   preventClickDuringDrag(event: MouseEvent): void {
@@ -309,20 +392,29 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
   }
 
   goToSlide(index: number): void {
+    if (this.isTransitioning) return;
     this.currentSlide.set(index);
-    this.dragOffset.set(-index * this.slideWidth());
+    this.dragOffset.set(this.getSlideOffset(index));
     this.stopAutoPlay();
     this.startAutoPlay();
   }
 
   private startAutoPlay(): void {
-    const slides = this.displaySlides();
+    const slides = this.infiniteSlides();
     if (slides.length <= 1) return;
 
     this.intervalId = setInterval(() => {
-      const next = (this.currentSlide() + 1) % slides.length;
-      this.currentSlide.set(next);
-      this.dragOffset.set(-next * this.slideWidth());
+      const next = this.currentSlide() + 1;
+
+      if (next >= slides.length) {
+        // Loop to first slide
+        this.animateToSlide(slides.length, () => {
+          this.jumpToSlide(0);
+        });
+      } else {
+        this.currentSlide.set(next);
+        this.dragOffset.set(this.getSlideOffset(next));
+      }
     }, 7000);
   }
 
@@ -331,5 +423,10 @@ export class BannerSliderComponent implements OnInit, OnDestroy {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
+  }
+
+  private restartAutoPlay(): void {
+    this.stopAutoPlay();
+    this.startAutoPlay();
   }
 }
