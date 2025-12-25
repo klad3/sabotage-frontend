@@ -10,7 +10,7 @@ import { Product } from '../../../../core/models/product.model';
       (keydown.enter)="cardClick.emit(product())"
       tabindex="0"
       role="button"
-      class="h-auto bg-sabotage-dark border-2 border-sabotage-border p-4 md:p-5 rounded-lg cursor-pointer transition-all duration-400 relative overflow-hidden shimmer hover-lift group flex flex-col"
+      class="h-full bg-sabotage-dark border-2 border-sabotage-border p-4 md:p-5 rounded-lg cursor-pointer transition-all duration-400 relative overflow-hidden shimmer hover-lift group flex flex-col"
       [attr.aria-label]="'Ver detalles de ' + product().name"
     >
       <!-- Product Image -->
@@ -25,20 +25,27 @@ import { Product } from '../../../../core/models/product.model';
 
       <!-- Product Info -->
       <div class="flex-1 flex flex-col">
-        <h3 class="text-base md:text-xl font-bold mb-2 text-sabotage-light uppercase">
+        <!-- Product Name: fixed height for 2 lines -->
+        <h3 class="text-base md:text-lg font-bold mb-2 text-sabotage-light uppercase line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]">
           {{ product().name }}
         </h3>
-        <p class="text-xs md:text-sm text-sabotage-muted mb-3 leading-relaxed line-clamp-2">
+        
+        <!-- Description: fixed height for 2 lines -->
+        <p class="text-xs md:text-sm text-sabotage-muted mb-3 leading-relaxed line-clamp-2 min-h-[2.25rem] md:min-h-[2.5rem]">
           {{ product().description }}
         </p>
 
-        @if (product().theme) {
-          <span class="inline-block px-2 md:px-3 py-1 bg-sabotage-border text-sabotage-light text-xs rounded-xl mb-2 font-semibold uppercase w-fit">
-            {{ product().theme }}
-          </span>
-        }
+        <!-- Theme tag: fixed height area -->
+        <div class="h-7 mb-2">
+          @if (product().theme) {
+            <span class="inline-block px-2 md:px-3 py-1 bg-sabotage-border text-sabotage-light text-xs rounded-xl font-semibold uppercase">
+              {{ product().theme }}
+            </span>
+          }
+        </div>
 
-        <div class="text-lg md:text-2xl font-extrabold text-sabotage-light mt-auto pt-2">
+        <!-- Price: always at bottom -->
+        <div class="text-lg md:text-2xl font-extrabold text-sabotage-light mt-auto">
           S/ {{ product().price.toFixed(2) }}
         </div>
       </div>
@@ -51,7 +58,7 @@ import { Product } from '../../../../core/models/product.model';
     </article>
   `,
   host: {
-    class: 'block'
+    class: 'block h-full'
   }
 })
 export class ProductCardComponent {
@@ -59,4 +66,3 @@ export class ProductCardComponent {
 
   readonly cardClick = output<Product>();
 }
-

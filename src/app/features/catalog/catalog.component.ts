@@ -21,9 +21,10 @@ import { Product, FilterState } from '../../core/models/product.model';
     </section>
 
     <!-- Main Content -->
-    <div class="flex flex-col md:flex-row max-w-[1600px] mx-auto p-5 md:p-10 gap-6 md:gap-8">
+    <div class="flex flex-col md:flex-row md:items-start max-w-[1600px] mx-auto p-5 md:p-10 gap-6 md:gap-8">
       <!-- Filters -->
       <app-product-filters
+        class="md:self-start"
         [showTypeFilter]="showTypeFilter()"
         (filtersChange)="onFiltersChange($event)"
       />
