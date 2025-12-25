@@ -120,28 +120,23 @@ import { FilterState } from '../../../../core/models/product.model';
 
       <!-- Price Filter -->
       <div class="mb-6">
-        <h4 class="text-base font-bold mb-4 tracking-wide">PRECIO</h4>
+        <h4 class="text-base font-bold mb-4 tracking-wide">PRECIO MÁXIMO</h4>
         <div class="px-1 py-2">
-          <div class="flex justify-between mb-4 font-semibold text-lg">
-            <span>S/ {{ priceMin() }}</span>
-            <span>S/ {{ priceMax() }}</span>
+          <div class="text-center mb-3 font-semibold text-xl">
+            S/ {{ priceMax() }}
           </div>
           <input
             type="range"
-            [min]="0"
-            [max]="150"
-            [value]="priceMin()"
-            (input)="updatePriceMin($event)"
-            class="w-full h-[6px] bg-sabotage-border rounded-md outline-none cursor-pointer mb-2 accent-sabotage-light"
-          />
-          <input
-            type="range"
-            [min]="0"
+            [min]="10"
             [max]="150"
             [value]="priceMax()"
             (input)="updatePriceMax($event)"
             class="w-full h-[6px] bg-sabotage-border rounded-md outline-none cursor-pointer accent-sabotage-light"
           />
+          <div class="flex justify-between text-sm text-sabotage-muted mt-2">
+            <span>S/ 10</span>
+            <span>S/ 150</span>
+          </div>
         </div>
       </div>
     </aside>
