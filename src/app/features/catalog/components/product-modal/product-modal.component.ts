@@ -116,8 +116,10 @@ import { CartService } from '../../../../core/services/cart.service';
                 type="button"
                 (click)="addToCart()"
                 [disabled]="isAdding() || !product()?.inStock"
-                class="w-full py-4 md:py-5 bg-sabotage-light text-black font-extrabold text-lg tracking-wider rounded mt-auto transition-all duration-300 hover:bg-white hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
-                [class.bg-sabotage-success]="isAdded()"
+                class="w-full py-4 md:py-5 font-extrabold text-lg tracking-[2px] rounded mt-auto transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                [class]="isAdded() 
+                  ? 'bg-[#4CAF50] text-white' 
+                  : 'bg-sabotage-light text-black hover:bg-white hover:scale-[1.02]'"
               >
                 @if (isAdded()) {
                   ✓ AGREGADO AL CARRITO
