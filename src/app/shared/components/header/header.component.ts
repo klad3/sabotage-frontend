@@ -50,11 +50,11 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
             aria-label="Buscar"
           >
             @if (isMobileSearchOpen()) {
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 icon-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             } @else {
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 icon-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             }
@@ -238,6 +238,25 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
       100% {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    .icon-transition {
+      animation: iconPop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes iconPop {
+      0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(-90deg);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.1) rotate(0deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
       }
     }
   `],

@@ -47,11 +47,11 @@ import { Product } from '../../../core/models/product.model';
                         aria-label="Buscar productos"
                     >
                         @if (isOpen()) {
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-6 h-6 icon-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         } @else {
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-6 h-6 icon-transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <path d="m21 21-4.3-4.3"></path>
                             </svg>
@@ -205,6 +205,25 @@ import { Product } from '../../../core/models/product.model';
             border: none !important;
             outline: none !important;
             box-shadow: none !important;
+        }
+
+        .icon-transition {
+            animation: iconPop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes iconPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotate(-90deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1) rotate(0deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
         }
     `],
     host: {
