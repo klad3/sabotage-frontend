@@ -83,7 +83,19 @@ export class CatalogComponent {
 
   private async loadCategoryData(slug: string): Promise<void> {
     this.loadingCategory.set(true);
+
     try {
+      // First, try to find category in already-loaded ProductService cache
+      const cachedCategories = this.productService.categories();
+      const cachedCategory = cachedCategories.find(c => c.slug === slug);
+
+      if (cachedCategory) {
+        // Use cached category - no API call needed
+        this.categoryData.set(cachedCategory);
+        return;
+      }
+
+      // Not in cache - fetch from API (happens when entering directly to category page)
       const categories = await this.supabase.getAll<DbCategory>('categories', {
         filters: [{ column: 'slug', operator: 'eq', value: slug }]
       });
