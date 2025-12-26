@@ -1,5 +1,5 @@
 import { Component, signal, ChangeDetectionStrategy, OnInit, OnDestroy, inject, computed, HostListener, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import { SupabaseService } from '../../../../core/services/supabase.service';
+import { BannerService } from '../../../../core/services/banner.service';
 import { DbBanner } from '../../../../core/models/product.model';
 
 interface DisplaySlide {
@@ -138,7 +138,7 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
   }
 })
 export class BannerSliderComponent implements OnInit, OnDestroy, AfterViewInit {
-  private readonly supabase = inject(SupabaseService);
+  private readonly bannerService = inject(BannerService);
   private readonly elementRef = inject(ElementRef);
 
   @ViewChild('sliderContainer') sliderContainer!: ElementRef<HTMLDivElement>;
@@ -272,11 +272,8 @@ export class BannerSliderComponent implements OnInit, OnDestroy, AfterViewInit {
   private async loadBanners(): Promise<void> {
     this.loading.set(true);
     try {
-      const banners = await this.supabase.getAll<DbBanner>('banners', {
-        filters: [{ column: 'is_active', operator: 'eq', value: true }],
-        orderBy: { column: 'display_order', ascending: true }
-      });
-      this.banners.set(banners);
+      await this.bannerService.loadBanners();
+      this.banners.set(this.bannerService.banners());
     } catch (error) {
       console.error('Error loading banners:', error);
       this.banners.set([]);

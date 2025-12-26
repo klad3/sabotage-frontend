@@ -10,6 +10,11 @@ export class ReviewsService {
     private readonly allReviews = signal<DbReview[]>([]);
     private loaded = false;
 
+    // Featured reviews cache
+    private readonly featuredCache = signal<DbReview[]>([]);
+    private featuredLoaded = false;
+    private pendingFeaturedLoad: Promise<DbReview[]> | null = null;
+
     // Computed signals for different views
     readonly approvedReviews = computed(() =>
         this.allReviews()
@@ -45,12 +50,30 @@ export class ReviewsService {
     }
 
     /**
-     * Get featured reviews for home page (max 3)
+     * Get featured reviews for home page (max 3) - with cache
      * Falls back to latest 3 approved if none featured
      */
     async getFeaturedReviews(): Promise<DbReview[]> {
+        // Return cached if available
+        if (this.featuredLoaded) {
+            return this.featuredCache();
+        }
+
+        // If load in progress, wait for it
+        if (this.pendingFeaturedLoad) {
+            return this.pendingFeaturedLoad;
+        }
+
+        // Start loading
+        this.pendingFeaturedLoad = this.doLoadFeatured();
+        const result = await this.pendingFeaturedLoad;
+        this.pendingFeaturedLoad = null;
+        return result;
+    }
+
+    private async doLoadFeatured(): Promise<DbReview[]> {
         // First try to get featured reviews
-        const featured = await this.supabase.getAll<DbReview>('reviews', {
+        let reviews = await this.supabase.getAll<DbReview>('reviews', {
             filters: [
                 { column: 'status', operator: 'eq', value: 'approved' },
                 { column: 'is_featured', operator: 'eq', value: true }
@@ -59,16 +82,18 @@ export class ReviewsService {
             limit: 3
         });
 
-        if (featured.length > 0) {
-            return featured;
+        if (reviews.length === 0) {
+            // Fallback to latest 3 approved
+            reviews = await this.supabase.getAll<DbReview>('reviews', {
+                filters: [{ column: 'status', operator: 'eq', value: 'approved' }],
+                orderBy: { column: 'created_at', ascending: false },
+                limit: 3
+            });
         }
 
-        // Fallback to latest 3 approved
-        return this.supabase.getAll<DbReview>('reviews', {
-            filters: [{ column: 'status', operator: 'eq', value: 'approved' }],
-            orderBy: { column: 'created_at', ascending: false },
-            limit: 3
-        });
+        this.featuredCache.set(reviews);
+        this.featuredLoaded = true;
+        return reviews;
     }
 
     /**

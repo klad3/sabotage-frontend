@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, OnInit, signal, PLATFORM_ID
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SiteConfigService } from '../../../../core/services/site-config.service';
-import { SupabaseService } from '../../../../core/services/supabase.service';
+import { SocialEmbedService } from '../../../../core/services/social-embed.service';
 import { DbSocialEmbed } from '../../../../core/models/product.model';
 
 @Component({
@@ -212,13 +212,13 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
 })
 export class SocialFeedComponent implements OnInit {
   readonly siteConfig = inject(SiteConfigService);
-  private readonly supabase = inject(SupabaseService);
+  private readonly socialEmbedService = inject(SocialEmbedService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
 
-  readonly loading = signal(true);
-  readonly embeds = signal<DbSocialEmbed[]>([]);
+  readonly loading = this.socialEmbedService.loading;
+  readonly embeds = this.socialEmbedService.embeds;
 
   private loadedScripts = new Set<string>();
 
@@ -236,22 +236,8 @@ export class SocialFeedComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await Promise.all([
       this.siteConfig.loadConfigs(),
-      this.loadEmbeds()
+      this.socialEmbedService.loadEmbeds()
     ]);
-  }
-
-  private async loadEmbeds(): Promise<void> {
-    try {
-      const embeds = await this.supabase.getAll<DbSocialEmbed>('social_embeds', {
-        filters: [{ column: 'is_active', operator: 'eq', value: true }],
-        orderBy: { column: 'display_order', ascending: true }
-      });
-      this.embeds.set(embeds);
-    } catch (error) {
-      console.warn('Could not load social embeds:', error);
-    } finally {
-      this.loading.set(false);
-    }
   }
 
   getSafeHtml(html: string): SafeHtml {
