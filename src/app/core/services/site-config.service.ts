@@ -10,7 +10,8 @@ import {
     FooterConfig,
     Testimonial,
     NewsletterContent,
-    HeaderConfig
+    HeaderConfig,
+    AboutPageConfig
 } from '../models/product.model';
 
 // Default values when database is not configured
@@ -75,6 +76,46 @@ const DEFAULT_HEADER_CONFIG: HeaderConfig = {
     is_sticky: true
 };
 
+const DEFAULT_ABOUT_PAGE: AboutPageConfig = {
+    banner: {
+        image_url: null
+    },
+    intro: {
+        title: '¿Quiénes somos?',
+        paragraphs: [
+            'Somos una marca de moda urbana creada para quienes expresan su estilo sin pedir permiso.',
+            'Diseñamos polos oversize, poleras, gorros y bolsos de alta calidad, pensados para destacar, combinar y marcar presencia en cada look.',
+            'Unimos creatividad y visión para ofrecer diseños actuales, con materiales seleccionados y acabados cuidados. Creemos que la ropa no solo se usa, se siente; cada prenda refleja actitud, autenticidad y una forma única de reinterpretar la moda.'
+        ]
+    },
+    history: {
+        title: 'Nuestra Historia',
+        paragraphs: [
+            'Nuestra historia nace del deseo de crear prendas que realmente representen a quienes las usan. Empezamos con una idea clara: ofrecer polos oversize y piezas urbanas de buena calidad, con diseño y actitud, para personas que quieren verse bien y sentirse cómodas al mismo tiempo.',
+            'Con creatividad, visión y mucha dedicación, fuimos construyendo una marca pensada para nuestra comunidad. Cada prenda refleja ese inicio: hacer moda urbana con identidad, cuidando los detalles y poniendo siempre al cliente en el centro de todo lo que hacemos.'
+        ]
+    },
+    mission_vision: {
+        mission_title: 'Misión',
+        mission_text: 'Ofrecer prendas de moda urbana de alta calidad que ayuden a las personas a expresar su estilo con seguridad y comodidad. Creamos diseños actuales, pensando en quienes buscan verse bien, sentirse auténticos y usar ropa que los represente.',
+        vision_title: 'Visión',
+        vision_text: 'Ser una marca de moda urbana cercana y referente, reconocida por la calidad de sus polos y por acompañar a nuestra comunidad a mostrar su identidad a través de cada prenda.',
+        background_image: null
+    },
+    values: {
+        title: 'Valores',
+        items: [
+            { text: 'Priorizamos materiales y acabados que garanticen comodidad, durabilidad y una experiencia que se note desde el primer uso.' },
+            { text: 'Creemos en el estilo propio. Cada prenda está pensada para que nuestros clientes se expresen tal como son, sin seguir reglas impuestas.' },
+            { text: 'Escuchamos a nuestra comunidad y creamos pensando en sus gustos, necesidades y forma de vivir la moda.' }
+        ]
+    },
+    models: {
+        title: 'Nuestras estrellas de la camara',
+        items: []
+    }
+};
+
 @Injectable({ providedIn: 'root' })
 export class SiteConfigService {
     private readonly supabase = inject(SupabaseService);
@@ -97,6 +138,7 @@ export class SiteConfigService {
     readonly testimonials = signal<Testimonial[]>(DEFAULT_TESTIMONIALS);
     readonly newsletterContent = signal<NewsletterContent>(DEFAULT_NEWSLETTER_CONTENT);
     readonly headerConfig = signal<HeaderConfig>(DEFAULT_HEADER_CONFIG);
+    readonly aboutPage = signal<AboutPageConfig>(DEFAULT_ABOUT_PAGE);
 
     // ============================================
     // Load All Configurations
@@ -170,6 +212,9 @@ export class SiteConfigService {
                 break;
             case 'header_config':
                 this.headerConfig.set({ ...DEFAULT_HEADER_CONFIG, ...(value as Partial<HeaderConfig>) });
+                break;
+            case 'about_page':
+                this.aboutPage.set({ ...DEFAULT_ABOUT_PAGE, ...(value as Partial<AboutPageConfig>) });
                 break;
         }
     }

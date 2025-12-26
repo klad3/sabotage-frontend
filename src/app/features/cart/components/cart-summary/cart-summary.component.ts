@@ -18,11 +18,11 @@ import { environment } from '../../../../../environments/environment';
 
       <!-- Details -->
       <div class="mb-6">
-        <div class="flex justify-between py-3 text-base md:text-lg text-[#ccc] border-b border-sabotage-gray">
+        <div class="flex justify-between py-3 text-base md:text-lg text-sabotage-muted border-b border-sabotage-gray">
           <span>Subtotal:</span>
           <span class="font-semibold">S/ {{ cartService.subtotal().toFixed(2) }}</span>
         </div>
-        <div class="flex justify-between py-3 text-base md:text-lg text-[#ccc] border-b border-sabotage-gray">
+        <div class="flex justify-between py-3 text-base md:text-lg text-sabotage-muted border-b border-sabotage-gray">
           <span>Envío:</span>
           <span class="font-semibold">S/ {{ cartService.shipping().toFixed(2) }}</span>
         </div>
@@ -40,7 +40,7 @@ import { environment } from '../../../../../environments/environment';
 
       <!-- Discount Code -->
       <div class="py-5 border-t-2 border-b-2 border-sabotage-border my-6">
-        <h4 class="text-sm font-bold tracking-wide text-[#ccc] mb-4">¿TIENES UN CÓDIGO?</h4>
+        <h4 class="text-sm font-bold tracking-wide text-sabotage-muted mb-4">¿TIENES UN CÓDIGO?</h4>
         <div class="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
@@ -51,7 +51,7 @@ import { environment } from '../../../../../environments/environment';
           <button
             type="button"
             (click)="applyDiscount()"
-            class="px-5 py-3 bg-sabotage-border border-2 border-sabotage-border text-sabotage-light font-bold rounded cursor-pointer transition-all duration-300 hover:bg-[#444] hover:border-sabotage-light"
+            class="px-5 py-3 bg-sabotage-gray border-2 border-sabotage-border text-sabotage-light font-bold rounded cursor-pointer transition-all duration-300 hover:bg-sabotage-border hover:border-sabotage-light"
           >
             APLICAR
           </button>
@@ -77,7 +77,7 @@ import { environment } from '../../../../../environments/environment';
         type="button"
         (click)="checkout()"
         [disabled]="cartService.isEmpty() || isProcessing()"
-        class="w-full py-4 md:py-5 bg-sabotage-light text-black font-extrabold text-lg md:text-xl tracking-wider rounded mt-6 transition-all duration-300 hover:bg-white hover:scale-[1.02] disabled:bg-[#555] disabled:text-[#888] disabled:cursor-not-allowed disabled:transform-none"
+        class="w-full py-4 md:py-5 bg-sabotage-light text-sabotage-black font-extrabold text-lg md:text-xl tracking-wider rounded mt-6 transition-all duration-300 hover:opacity-90 hover:scale-[1.02] disabled:bg-[#555] disabled:text-[#888] disabled:cursor-not-allowed disabled:transform-none"
       >
         @if (isProcessing()) {
           PROCESANDO...

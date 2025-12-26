@@ -324,6 +324,7 @@ export class AdminSidebarComponent {
             items: [
                 { label: 'Banners', route: '/admin/banners', icon: '🖼️' },
                 { label: 'Redes Sociales', route: '/admin/social-embeds', icon: '📱' },
+                { label: 'Quiénes Somos', route: '/admin/about-page', icon: '📝' },
                 { label: 'Configuración', route: '/admin/settings', icon: '⚙️' }
             ]
         }

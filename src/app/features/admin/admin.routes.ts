@@ -78,6 +78,12 @@ export const ADMIN_ROUTES: Routes = [
                 loadComponent: () => import('./pages/reviews/review-list/review-list.component')
                     .then(m => m.ReviewListComponent),
                 title: 'SABOTAGE Admin - Reseñas'
+            },
+            {
+                path: 'about-page',
+                loadComponent: () => import('./pages/about-page/about-page-editor.component')
+                    .then(m => m.AboutPageEditorComponent),
+                title: 'SABOTAGE Admin - Quiénes Somos'
             }
         ]
     }

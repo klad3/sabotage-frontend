@@ -389,3 +389,57 @@ export interface CreateReviewPayload {
     status?: ReviewStatus;
     is_featured?: boolean;
 }
+
+// ============================================
+// About Page Configuration
+// ============================================
+
+export interface AboutPageBanner {
+    image_url: string | null;  // Uploaded to banners bucket
+}
+
+export interface AboutPageIntro {
+    title: string;  // "¿Quiénes somos?"
+    paragraphs: string[];  // Array of paragraphs
+}
+
+export interface AboutPageHistory {
+    title: string;  // "Nuestra Historia"
+    paragraphs: string[];
+}
+
+export interface AboutPageMissionVision {
+    mission_title: string;
+    mission_text: string;
+    vision_title: string;
+    vision_text: string;
+    background_image: string | null;  // Optional background image
+}
+
+export interface AboutPageValue {
+    text: string;  // Just text, no icons
+}
+
+export interface AboutPageValues {
+    title: string;  // "Valores"
+    items: AboutPageValue[];
+}
+
+export interface AboutPageModel {
+    name: string;
+    image_url: string | null;  // Uploaded to banners bucket
+}
+
+export interface AboutPageModels {
+    title: string;  // "Nuestras estrellas de la camara"
+    items: AboutPageModel[];
+}
+
+export interface AboutPageConfig {
+    banner: AboutPageBanner;
+    intro: AboutPageIntro;
+    history: AboutPageHistory;
+    mission_vision: AboutPageMissionVision;
+    values: AboutPageValues;
+    models: AboutPageModels;
+}

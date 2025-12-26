@@ -22,13 +22,13 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                 <!-- Breadcrumb -->
                 <div class="max-w-7xl mx-auto px-4 py-4">
                     <nav class="flex items-center gap-2 text-sm text-sabotage-muted">
-                        <a routerLink="/" class="hover:text-white transition-colors">Inicio</a>
+                        <a routerLink="/" class="hover:text-sabotage-light transition-colors">Inicio</a>
                         <span>/</span>
-                        <a [routerLink]="'/' + product()!.category" class="hover:text-white transition-colors uppercase">
-                            {{ product()!.category === 'oversize' ? 'Oversize' : 'Polos Clásicos' }}
+                        <a [routerLink]="'/' + product()!.category" class="hover:text-sabotage-light transition-colors uppercase">
+                            {{ categoryName() }}
                         </a>
                         <span>/</span>
-                        <span class="text-white">{{ product()!.name }}</span>
+                        <span class="text-sabotage-light font-semibold">{{ product()!.name }}</span>
                     </nav>
                 </div>
 
@@ -80,10 +80,10 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                                                 type="button"
                                                 (click)="selectSize(size)"
                                                 [class.bg-sabotage-light]="selectedSize() === size"
-                                                [class.text-black]="selectedSize() === size"
+                                                [class.text-sabotage-black]="selectedSize() === size"
                                                 [class.border-sabotage-light]="selectedSize() === size"
                                                 [class.bg-sabotage-gray]="selectedSize() !== size"
-                                                [class.text-white]="selectedSize() !== size"
+                                                [class.text-sabotage-light]="selectedSize() !== size"
                                                 [class.border-sabotage-border]="selectedSize() !== size"
                                                 class="w-14 h-14 border-2 rounded font-bold transition-all duration-300 hover:border-sabotage-light"
                                             >
@@ -135,7 +135,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                                 [class]="addedToCart() 
                                     ? 'bg-[#4CAF50] text-white' 
                                     : product()!.inStock 
-                                        ? 'bg-sabotage-light text-black hover:bg-white hover:scale-[1.02]' 
+                                        ? 'bg-sabotage-light text-sabotage-black hover:opacity-90 hover:scale-[1.02]' 
                                         : 'bg-sabotage-gray text-sabotage-muted'"
                             >
                                 @if (addedToCart()) {
@@ -176,7 +176,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                 <!-- Related Products -->
                 @if (relatedProducts().length > 0) {
                     <section class="max-w-7xl mx-auto px-4 py-12 border-t border-sabotage-border">
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8 uppercase tracking-wide">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-sabotage-light mb-8 uppercase tracking-wide">
                             TAMBIÉN TE PUEDE INTERESAR
                         </h2>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -231,6 +231,14 @@ export class ProductDetailComponent implements OnInit {
         return this.productService.products()
             .filter(p => p.id !== current.id && p.category === current.category)
             .slice(0, 4);
+    });
+
+    readonly categoryName = computed(() => {
+        const p = this.product();
+        if (!p) return '';
+
+        const category = this.productService.categories().find(c => c.slug === p.category);
+        return category?.name || p.category.charAt(0).toUpperCase() + p.category.slice(1);
     });
 
     async ngOnInit(): Promise<void> {

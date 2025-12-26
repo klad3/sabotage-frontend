@@ -96,9 +96,13 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
             >
               INICIO
             </a>
-            <span class="px-4 py-3 text-sabotage-muted font-bold text-lg cursor-not-allowed">
+            <a
+              routerLink="/nosotros"
+              (click)="closeMobileMenu()"
+              class="px-4 py-3 text-white font-bold text-lg hover:bg-sabotage-gray transition-colors"
+            >
               QUIENES SOMOS
-            </span>
+            </a>
             <span class="px-4 py-3 text-sabotage-muted font-bold text-lg cursor-not-allowed">
               PRODUCTOS
             </span>
@@ -177,10 +181,9 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
           </a>
 
           <a
-            href="#"
-            class="nav-link-underline text-sabotage-light hover:opacity-80 transition-opacity cursor-not-allowed opacity-50"
-            title="Próximamente"
-            (click)="$event.preventDefault()"
+            routerLink="/nosotros"
+            routerLinkActive="text-white"
+            class="nav-link-underline text-sabotage-light hover:opacity-80 transition-opacity"
           >
             QUIENES SOMOS
           </a>
