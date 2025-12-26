@@ -39,7 +39,7 @@ import { DbReview } from '../../../../core/models/product.model';
       <div class="text-center mt-10">
         <a
           routerLink="/reviews"
-          class="inline-flex items-center gap-2 text-lg font-semibold text-[#00d9ff] hover:text-white transition-colors duration-200"
+          class="inline-flex items-center gap-2 text-lg font-semibold text-[#00d9ff] hover:text-sabotage-light transition-colors duration-200"
         >
           Ver todos los testimonios
           <span class="text-xl">→</span>

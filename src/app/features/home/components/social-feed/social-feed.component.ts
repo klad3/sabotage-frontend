@@ -132,10 +132,9 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
 
         .embed-container {
             flex: 0 0 auto;
-            width: 325px;
+            width: 326px;
             max-width: 100%;
             overflow: hidden;
-            border-radius: 12px;
             background: #fff;
         }
 
