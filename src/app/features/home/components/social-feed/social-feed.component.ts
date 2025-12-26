@@ -51,8 +51,8 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
   styles: [`
         .social-feed {
             padding: 3rem 1.25rem;
-            background: #0a0a0a;
-            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            background: var(--color-sabotage-black);
+            border-top: 2px solid var(--color-sabotage-border);
         }
 
         @media (min-width: 768px) {
@@ -67,7 +67,7 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
             text-align: center;
             margin-bottom: 1.25rem;
             letter-spacing: 0.05em;
-            color: #fff;
+            color: var(--color-sabotage-light);
         }
 
         @media (min-width: 768px) {
@@ -80,7 +80,7 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
             text-align: center;
             font-size: 1.125rem;
             margin-bottom: 2.5rem;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--color-sabotage-muted);
         }
 
         @media (min-width: 768px) {
@@ -91,7 +91,7 @@ import { DbSocialEmbed } from '../../../../core/models/product.model';
         }
 
         .handle-link {
-            color: #fff;
+            color: var(--color-sabotage-light);
             font-weight: 600;
             text-decoration: none;
             transition: opacity 0.2s;

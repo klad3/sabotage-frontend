@@ -10,7 +10,7 @@ import { COUNTRIES, DISTRICTS_BY_COUNTRY } from '../../../../core/models/product
   imports: [FormsModule, ReactiveFormsModule],
   template: `
     <!-- Newsletter Section -->
-    <section class="py-12 md:py-20 px-5 md:px-10 bg-black border-t-[3px] border-sabotage-light">
+    <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-t-[3px] border-sabotage-light">
       <div class="max-w-[800px] mx-auto text-center">
         <h2 class="text-3xl md:text-5xl font-extrabold mb-5 tracking-wide">
           {{ siteConfig.newsletterContent().title }}
@@ -33,7 +33,7 @@ import { COUNTRIES, DISTRICTS_BY_COUNTRY } from '../../../../core/models/product
           />
           <button
             type="submit"
-            class="px-8 md:px-10 py-4 md:py-5 bg-sabotage-light text-black font-bold text-base uppercase tracking-wide transition-all duration-300 hover:bg-white hover:scale-105"
+            class="px-8 md:px-10 py-4 md:py-5 bg-sabotage-light text-sabotage-black font-bold text-base uppercase tracking-wide transition-all duration-300 hover:opacity-90 hover:scale-105"
           >
             Suscribirse
           </button>

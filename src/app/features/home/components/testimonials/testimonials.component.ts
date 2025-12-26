@@ -25,7 +25,7 @@ import { DbReview } from '../../../../core/models/product.model';
                   ⭐
                 }
               </div>
-              <p class="text-sm md:text-base leading-relaxed mb-5 italic text-[#ccc]">
+              <p class="text-sm md:text-base leading-relaxed mb-5 italic text-sabotage-muted">
                 "{{ review.text }}"
               </p>
               <p class="text-base md:text-lg font-semibold text-sabotage-light">

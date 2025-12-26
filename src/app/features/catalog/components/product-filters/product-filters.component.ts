@@ -47,7 +47,7 @@ import { FilterState } from '../../../../core/models/product.model';
               (change)="toggleType('simple')"
               class="w-[18px] h-[18px] mr-3 cursor-pointer accent-sabotage-light"
             />
-            <span class="text-[#ccc]">Sin personalizar</span>
+            <span class="text-sabotage-muted">Sin personalizar</span>
           </label>
           <label class="flex items-center cursor-pointer p-2 rounded transition-all duration-300 hover:bg-sabotage-gray">
             <input
@@ -56,7 +56,7 @@ import { FilterState } from '../../../../core/models/product.model';
               (change)="toggleType('personalizado')"
               class="w-[18px] h-[18px] mr-3 cursor-pointer accent-sabotage-light"
             />
-            <span class="text-[#ccc]">Personalizado</span>
+            <span class="text-sabotage-muted">Personalizado</span>
           </label>
         </div>
       </div>
@@ -74,7 +74,7 @@ import { FilterState } from '../../../../core/models/product.model';
                 (change)="toggleSize(size)"
                 class="w-[18px] h-[18px] mr-3 cursor-pointer accent-sabotage-light"
               />
-              <span class="text-[#ccc]">{{ size }}</span>
+              <span class="text-sabotage-muted">{{ size }}</span>
             </label>
           }
         </div>
@@ -92,7 +92,7 @@ import { FilterState } from '../../../../core/models/product.model';
                 (change)="toggleColor(color.value)"
                 class="w-[18px] h-[18px] mr-3 cursor-pointer accent-sabotage-light"
               />
-              <span class="text-[#ccc]">{{ color.label }}</span>
+              <span class="text-sabotage-muted">{{ color.label }}</span>
             </label>
           }
         </div>
@@ -111,7 +111,7 @@ import { FilterState } from '../../../../core/models/product.model';
                   (change)="toggleTheme(theme.value)"
                   class="w-[18px] h-[18px] mr-3 cursor-pointer accent-sabotage-light"
                 />
-                <span class="text-[#ccc]">{{ theme.label }}</span>
+                <span class="text-sabotage-muted">{{ theme.label }}</span>
               </label>
             }
           </div>
