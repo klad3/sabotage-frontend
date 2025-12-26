@@ -1,11 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { SiteConfigService } from '../../core/services/site-config.service';
 
 @Component({
     selector: 'app-about',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink],
     template: `
         <div class="min-h-screen">
             <!-- Banner Section -->
@@ -93,7 +91,16 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                         @for (value of siteConfig.aboutPage().values.items; track $index) {
-                            <div class="text-center">
+                            <div class="text-center flex flex-col items-center">
+                                @if (value.image_url) {
+                                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden mb-6 border-2 border-sabotage-border">
+                                        <img 
+                                            [src]="value.image_url" 
+                                            alt=""
+                                            class="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                }
                                 <p class="text-sabotage-muted text-base md:text-lg leading-relaxed">
                                     {{ value.text }}
                                 </p>

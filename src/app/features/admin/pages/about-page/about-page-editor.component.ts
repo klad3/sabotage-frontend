@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SiteConfigService } from '../../../../core/services/site-config.service';
 import { SupabaseService } from '../../../../core/services/supabase.service';
@@ -159,21 +159,35 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
                     <span class="section-icon">✨</span>
                     <h2>Valores</h2>
                 </div>
+                <p class="section-desc">Cada valor puede tener una imagen circular que aparece encima del texto</p>
                 
                 <div class="form-group">
                     <label>Título de Sección</label>
                     <input type="text" [(ngModel)]="config.values.title" placeholder="Valores">
                 </div>
                 
-                <div class="values-list">
+                <div class="values-grid">
                     @for (value of config.values.items; track $index; let i = $index) {
-                        <div class="value-item">
-                            <span class="value-number">{{ i + 1 }}</span>
-                            <textarea [(ngModel)]="value.text" rows="2" placeholder="Describe este valor..."></textarea>
-                            <button class="btn-remove-small" (click)="removeValue(i)">✕</button>
+                        <div class="value-card">
+                            <div class="value-image-upload">
+                                @if (valuePreviews()[i] || value.image_url) {
+                                    <img [src]="valuePreviews()[i] || value.image_url" alt="">
+                                    <button class="btn-remove-circle" (click)="removeValueImage(i)">✕</button>
+                                } @else {
+                                    <input type="file" accept="image/*" (change)="onValueImageChange($event, i)" [id]="'value-upload-' + i">
+                                    <label [for]="'value-upload-' + i" class="upload-label-circle">
+                                        📤
+                                    </label>
+                                }
+                            </div>
+                            <textarea [(ngModel)]="value.text" rows="3" placeholder="Describe este valor..."></textarea>
+                            <button class="btn-delete-value" (click)="removeValue(i)">🗑️ Eliminar</button>
                         </div>
                     }
-                    <button class="btn-add" (click)="addValue()">+ Agregar valor</button>
+                    <button class="btn-add-value" (click)="addValue()">
+                        <span>➕</span>
+                        <span>Agregar Valor</span>
+                    </button>
                 </div>
             </section>
 
@@ -476,39 +490,114 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        .values-list { margin-top: 16px; }
-
-        .value-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
         }
 
-        .value-number {
-            width: 32px;
-            height: 32px;
+        .value-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .value-image-upload {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            border-radius: 50%;
-            color: #000;
-            font-weight: 700;
-            flex-shrink: 0;
+            position: relative;
+            margin-bottom: 12px;
+            overflow: hidden;
         }
 
-        .value-item textarea {
-            flex: 1;
-            padding: 12px 16px;
+        .value-image-upload img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .value-image-upload input[type="file"] { display: none; }
+
+        .upload-label-circle {
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 24px;
+        }
+
+        .upload-label-circle:hover { color: #feca57; }
+
+        .btn-remove-circle {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 24px;
+            height: 24px;
+            background: rgba(244, 63, 94, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .value-card textarea {
+            width: 100%;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             color: #fff;
-            font-size: 14px;
+            font-size: 13px;
             font-family: inherit;
             resize: vertical;
+            text-align: center;
         }
+
+        .btn-delete-value {
+            margin-top: 12px;
+            padding: 6px 12px;
+            background: rgba(244, 63, 94, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: #f43f5e;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete-value:hover { background: rgba(244, 63, 94, 0.2); }
+
+        .btn-add-value {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 150px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-add-value:hover {
+            border-color: rgba(254, 202, 87, 0.4);
+            color: #feca57;
+        }
+
+        .btn-add-value span:first-child { font-size: 24px; }
 
         .models-grid {
             display: grid;
@@ -613,6 +702,7 @@ export class AboutPageEditorComponent implements OnInit {
     private readonly siteConfig = inject(SiteConfigService);
     private readonly supabase = inject(SupabaseService);
     private readonly toast = inject(ToastService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     config: AboutPageConfig = {
         banner: { image_url: null },
@@ -634,18 +724,23 @@ export class AboutPageEditorComponent implements OnInit {
     // Image previews
     readonly bannerPreview = signal<string | null>(null);
     readonly missionBgPreview = signal<string | null>(null);
+    readonly valuePreviews = signal<(string | null)[]>([]);
     readonly modelPreviews = signal<(string | null)[]>([]);
 
     // Files to upload
     private bannerFile: File | null = null;
     private missionBgFile: File | null = null;
+    private valueFiles: (File | null)[] = [];
     private modelFiles: (File | null)[] = [];
 
     async ngOnInit(): Promise<void> {
         await this.siteConfig.loadConfigs();
         this.config = JSON.parse(JSON.stringify(this.siteConfig.aboutPage()));
+        this.valuePreviews.set(new Array(this.config.values.items.length).fill(null));
+        this.valueFiles = new Array(this.config.values.items.length).fill(null);
         this.modelPreviews.set(new Array(this.config.models.items.length).fill(null));
         this.modelFiles = new Array(this.config.models.items.length).fill(null);
+        this.cdr.markForCheck();
     }
 
     // Banner image
@@ -723,10 +818,39 @@ export class AboutPageEditorComponent implements OnInit {
 
     // Values
     addValue(): void {
-        this.config.values.items.push({ text: '' });
+        this.config.values.items.push({ text: '', image_url: null });
+        this.valueFiles.push(null);
+        this.valuePreviews.set([...this.valuePreviews(), null]);
     }
     removeValue(index: number): void {
         this.config.values.items.splice(index, 1);
+        this.valueFiles.splice(index, 1);
+        const previews = [...this.valuePreviews()];
+        previews.splice(index, 1);
+        this.valuePreviews.set(previews);
+    }
+
+    // Value images
+    onValueImageChange(event: Event, index: number): void {
+        const input = event.target as HTMLInputElement;
+        if (input.files?.[0]) {
+            this.valueFiles[index] = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previews = [...this.valuePreviews()];
+                previews[index] = e.target?.result as string;
+                this.valuePreviews.set(previews);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    removeValueImage(index: number): void {
+        this.valueFiles[index] = null;
+        const previews = [...this.valuePreviews()];
+        previews[index] = null;
+        this.valuePreviews.set(previews);
+        this.config.values.items[index].image_url = null;
     }
 
     // Models
@@ -761,6 +885,14 @@ export class AboutPageEditorComponent implements OnInit {
                 this.config.mission_vision.background_image = await this.supabase.uploadFile('banners', fileName, this.missionBgFile);
             }
 
+            // Upload value images
+            for (let i = 0; i < this.valueFiles.length; i++) {
+                if (this.valueFiles[i]) {
+                    const fileName = `about_value_${Date.now()}_${i}_${this.valueFiles[i]!.name}`;
+                    this.config.values.items[i].image_url = await this.supabase.uploadFile('banners', fileName, this.valueFiles[i]!);
+                }
+            }
+
             // Upload model images
             for (let i = 0; i < this.modelFiles.length; i++) {
                 if (this.modelFiles[i]) {
@@ -778,6 +910,7 @@ export class AboutPageEditorComponent implements OnInit {
                 // Reset file states
                 this.bannerFile = null;
                 this.missionBgFile = null;
+                this.valueFiles = this.valueFiles.map(() => null);
                 this.modelFiles = this.modelFiles.map(() => null);
                 this.bannerPreview.set(null);
                 this.missionBgPreview.set(null);

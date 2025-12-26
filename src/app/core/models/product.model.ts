@@ -417,7 +417,8 @@ export interface AboutPageMissionVision {
 }
 
 export interface AboutPageValue {
-    text: string;  // Just text, no icons
+    text: string;
+    image_url: string | null;  // Uploaded to banners bucket, shown above the value
 }
 
 export interface AboutPageValues {
