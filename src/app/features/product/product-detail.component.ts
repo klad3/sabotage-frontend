@@ -149,7 +149,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
 
                             <!-- Product Details -->
                             <div class="mt-8 pt-8 border-t border-sabotage-border">
-                                <h3 class="text-white font-bold mb-4">DETALLES</h3>
+                                <h3 class="text-sabotage-light font-bold mb-4">DETALLES</h3>
                                 <ul class="space-y-2 text-sabotage-muted">
                                     <li class="flex items-center gap-2">
                                         <span class="text-sabotage-accent">✓</span>
