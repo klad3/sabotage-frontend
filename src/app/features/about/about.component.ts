@@ -119,7 +119,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                                         <img 
                                             [src]="value.image_url" 
                                             [alt]="value.title"
-                                            class="w-full h-full object-cover"
+                                            class="w-full h-full object-cover grayscale"
                                         />
                                     } @else {
                                         <div class="w-full h-full bg-sabotage-dark"></div>
