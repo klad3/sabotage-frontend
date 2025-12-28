@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { BannerSliderComponent } from './components/banner-slider/banner-slider.component';
 import { ProductsMonthComponent } from './components/products-month/products-month.component';
 import { CategoriesComponent } from './components/categories/categories.component';
@@ -6,45 +6,64 @@ import { StatsComponent } from './components/stats/stats.component';
 import { TestimonialsComponent } from './components/testimonials/testimonials.component';
 import { SocialFeedComponent } from './components/social-feed/social-feed.component';
 import { NewsletterComponent } from './components/newsletter/newsletter.component';
+import { AosService } from '../../core/services/aos.service';
 
 @Component({
-    selector: 'app-home',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        BannerSliderComponent,
-        ProductsMonthComponent,
-        CategoriesComponent,
-        StatsComponent,
-        TestimonialsComponent,
-        SocialFeedComponent,
-        NewsletterComponent
-    ],
-    template: `
+  selector: 'app-home',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    BannerSliderComponent,
+    ProductsMonthComponent,
+    CategoriesComponent,
+    StatsComponent,
+    TestimonialsComponent,
+    SocialFeedComponent,
+    NewsletterComponent
+  ],
+  template: `
     <main>
       <!-- Banner Slider -->
       <app-banner-slider />
 
       <!-- Products of the Month -->
-      <app-products-month />
+      <div data-aos="fade-up">
+        <app-products-month />
+      </div>
 
       <!-- Categories -->
-      <app-categories />
+      <div data-aos="fade-up">
+        <app-categories />
+      </div>
 
       <!-- Stats -->
-      <app-stats />
+      <div data-aos="fade-up">
+        <app-stats />
+      </div>
 
       <!-- Testimonials -->
-      <app-testimonials />
+      <div data-aos="fade-up">
+        <app-testimonials />
+      </div>
 
       <!-- Social Feed -->
-      <app-social-feed />
+      <div data-aos="fade-up">
+        <app-social-feed />
+      </div>
 
       <!-- Newsletter -->
-      <app-newsletter />
+      <div data-aos="fade-up">
+        <app-newsletter />
+      </div>
     </main>
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
-export class HomeComponent { }
+export class HomeComponent implements OnInit {
+  private readonly aos = inject(AosService);
+
+  async ngOnInit(): Promise<void> {
+    await this.aos.init();
+  }
+}

@@ -4,6 +4,7 @@ import { ProductFiltersComponent } from './components/product-filters/product-fi
 import { ProductGridComponent } from './components/product-grid/product-grid.component';
 import { ProductService } from '../../core/services/product.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { AosService } from '../../core/services/aos.service';
 import { Product, FilterState, DbCategory } from '../../core/models/product.model';
 
 @Component({
@@ -12,7 +13,7 @@ import { Product, FilterState, DbCategory } from '../../core/models/product.mode
   imports: [ProductFiltersComponent, ProductGridComponent],
   template: `
     <!-- Page Header -->
-    <section class="text-center py-12 md:py-16 px-5 bg-sabotage-dark border-b-2 border-sabotage-border">
+    <section class="text-center py-12 md:py-16 px-5 bg-sabotage-dark border-b-2 border-sabotage-border" data-aos="fade-down">
       @if (loadingCategory()) {
         <!-- Skeleton while loading -->
         <div class="h-10 md:h-14 w-64 md:w-96 bg-sabotage-gray/50 rounded mx-auto mb-4 animate-pulse"></div>
@@ -28,7 +29,7 @@ import { Product, FilterState, DbCategory } from '../../core/models/product.mode
     </section>
 
     <!-- Main Content -->
-    <div class="flex flex-col md:flex-row md:items-start max-w-[1600px] mx-auto p-5 md:p-10 gap-6 md:gap-8">
+    <div class="flex flex-col md:flex-row md:items-start max-w-[1600px] mx-auto p-5 md:p-10 gap-6 md:gap-8" data-aos="fade-up">
       <!-- Filters -->
       <app-product-filters
         class="md:self-start"
@@ -51,6 +52,7 @@ export class CatalogComponent {
   private readonly productService = inject(ProductService);
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
+  private readonly aos = inject(AosService);
 
   // Inputs for different catalog types (fallback values)
   readonly category = input<string>('oversize');
@@ -79,6 +81,9 @@ export class CatalogComponent {
         this.loadCategoryData(slug);
       }
     });
+
+    // Initialize AOS
+    this.aos.init();
   }
 
   private async loadCategoryData(slug: string): Promise<void> {

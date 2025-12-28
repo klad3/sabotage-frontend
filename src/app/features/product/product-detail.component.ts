@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit } 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
+import { AosService } from '../../core/services/aos.service';
 import { Product } from '../../core/models/product.model';
 import { ProductCardComponent } from '../catalog/components/product-card/product-card.component';
 
@@ -36,7 +37,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                 <div class="max-w-7xl mx-auto px-4 py-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                         <!-- Product Image -->
-                        <div class="relative">
+                        <div class="relative" data-aos="fade-right">
                             <div class="aspect-square rounded-2xl overflow-hidden bg-sabotage-gray">
                                 <img
                                     [src]="product()!.imageUrl"
@@ -216,9 +217,10 @@ export class ProductDetailComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly productService = inject(ProductService);
     private readonly cartService = inject(CartService);
+    private readonly aos = inject(AosService);
 
-    readonly loading = signal(true);
     readonly product = signal<Product | null>(null);
+    readonly loading = signal(true);
     readonly selectedSize = signal<string>('');
     readonly quantity = signal(1);
     readonly isAdding = signal(false);
@@ -260,6 +262,7 @@ export class ProductDetailComponent implements OnInit {
         }
 
         this.loading.set(false);
+        await this.aos.init();
     }
 
     selectSize(size: string): void {

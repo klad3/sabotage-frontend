@@ -1,16 +1,17 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
+import { AosService } from '../../core/services/aos.service';
 import { CartItemComponent } from './components/cart-item/cart-item.component';
 import { CartSummaryComponent } from './components/cart-summary/cart-summary.component';
 
 @Component({
-    selector: 'app-cart',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink, CartItemComponent, CartSummaryComponent],
-    template: `
+  selector: 'app-cart',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, CartItemComponent, CartSummaryComponent],
+  template: `
     <!-- Page Header -->
-    <section class="text-center py-12 md:py-16 px-5 bg-sabotage-dark border-b-2 border-sabotage-border">
+    <section class="text-center py-12 md:py-16 px-5 bg-sabotage-dark border-b-2 border-sabotage-border" data-aos="fade-down">
       <h2 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-wider">
         TU CARRITO
       </h2>
@@ -20,7 +21,7 @@ import { CartSummaryComponent } from './components/cart-summary/cart-summary.com
     </section>
 
     <!-- Cart Content -->
-    <div class="max-w-[1400px] mx-auto p-5 md:p-10 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 md:gap-10 min-h-[60vh]">
+    <div class="max-w-[1400px] mx-auto p-5 md:p-10 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 md:gap-10 min-h-[60vh]" data-aos="fade-up">
       <!-- Products List -->
       <div class="flex flex-col gap-5 order-2 lg:order-1">
         @if (cartService.isEmpty()) {
@@ -52,16 +53,21 @@ import { CartSummaryComponent } from './components/cart-summary/cart-summary.com
       </div>
     </div>
   `,
-    host: {
-        class: 'block'
-    }
+  host: {
+    class: 'block'
+  }
 })
-export class CartComponent {
-    readonly cartService = inject(CartService);
+export class CartComponent implements OnInit {
+  readonly cartService = inject(CartService);
+  private readonly aos = inject(AosService);
 
-    removeItem(itemId: string): void {
-        if (typeof window !== 'undefined' && confirm('¿Estás seguro de eliminar este producto?')) {
-            this.cartService.removeItem(itemId);
-        }
+  async ngOnInit(): Promise<void> {
+    await this.aos.init();
+  }
+
+  removeItem(itemId: string): void {
+    if (typeof window !== 'undefined' && confirm('¿Estás seguro de eliminar este producto?')) {
+      this.cartService.removeItem(itemId);
     }
+  }
 }

@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { SiteConfigService } from '../../core/services/site-config.service';
+import { AosService } from '../../core/services/aos.service';
 
 @Component({
     selector: 'app-about',
@@ -172,17 +173,10 @@ import { SiteConfigService } from '../../core/services/site-config.service';
 })
 export class AboutComponent implements OnInit {
     readonly siteConfig = inject(SiteConfigService);
+    private readonly aos = inject(AosService);
 
     async ngOnInit(): Promise<void> {
         await this.siteConfig.loadConfigs();
-
-        // Initialize AOS after content is loaded
-        const AOS = await import('aos');
-        AOS.default.init({
-            duration: 800,
-            easing: 'ease-out-cubic',
-            once: true,
-            offset: 50
-        });
+        await this.aos.init();
     }
 }

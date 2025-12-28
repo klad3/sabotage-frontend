@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit, O
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../core/services/product.service';
+import { AosService } from '../../core/services/aos.service';
 import { Product } from '../../core/models/product.model';
 import { ProductCardComponent } from '../catalog/components/product-card/product-card.component';
 import { Subscription } from 'rxjs';
@@ -13,7 +14,7 @@ import { Subscription } from 'rxjs';
     template: `
         <div class="min-h-screen bg-sabotage-dark">
             <!-- Header -->
-            <section class="py-12 px-5 bg-sabotage-dark border-b-2 border-sabotage-border">
+            <section class="py-12 px-5 bg-sabotage-dark border-b-2 border-sabotage-border" data-aos="fade-down">
                 <div class="max-w-7xl mx-auto">
                     <h1 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-wider">
                         RESULTADOS DE BÚSQUEDA
@@ -53,7 +54,7 @@ import { Subscription } from 'rxjs';
             </div>
 
             <!-- Results Grid -->
-            <div class="max-w-7xl mx-auto px-5 py-8">
+            <div class="max-w-7xl mx-auto px-5 py-8" data-aos="fade-up">
                 @if (results().length > 0) {
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         @for (product of results(); track product.id) {
@@ -113,6 +114,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly productService = inject(ProductService);
+    private readonly aos = inject(AosService);
 
     readonly searchQuery = signal('');
     readonly results = signal<Product[]>([]);
@@ -123,6 +125,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private queryParamSub?: Subscription;
 
     ngOnInit(): void {
+        this.aos.init();
+
         this.queryParamSub = this.route.queryParams.subscribe(params => {
             const q = params['q'] || '';
             this.searchQuery.set(q);

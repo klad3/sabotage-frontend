@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ReviewsService } from '../../core/services/reviews.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SiteConfigService } from '../../core/services/site-config.service';
+import { AosService } from '../../core/services/aos.service';
 import { DbReview } from '../../core/models/product.model';
 
 @Component({
@@ -12,7 +13,7 @@ import { DbReview } from '../../core/models/product.model';
     template: `
         <main class="min-h-screen bg-sabotage-black">
             <!-- Header -->
-            <section class="py-12 md:py-20 px-5 md:px-10 max-w-[1400px] mx-auto text-center">
+            <section class="py-12 md:py-20 px-5 md:px-10 max-w-[1400px] mx-auto text-center" data-aos="fade-up">
                 <h1 class="text-3xl md:text-6xl font-extrabold mb-4 tracking-wide text-sabotage-light">
                     {{ siteConfig.sectionTitles().testimonials }}
                 </h1>
@@ -149,6 +150,7 @@ import { DbReview } from '../../core/models/product.model';
 export class ReviewsComponent implements OnInit {
     private readonly reviewsService = inject(ReviewsService);
     private readonly toast = inject(ToastService);
+    private readonly aos = inject(AosService);
     readonly siteConfig = inject(SiteConfigService);
 
     readonly loading = signal(true);
@@ -164,6 +166,7 @@ export class ReviewsComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await this.loadReviews();
+        await this.aos.init();
     }
 
     private async loadReviews(): Promise<void> {
