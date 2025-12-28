@@ -10,10 +10,10 @@ import { DbReview } from '../../core/models/product.model';
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [FormsModule],
     template: `
-        <main class="min-h-screen bg-black">
+        <main class="min-h-screen bg-sabotage-black">
             <!-- Header -->
             <section class="py-12 md:py-20 px-5 md:px-10 max-w-[1400px] mx-auto text-center">
-                <h1 class="text-3xl md:text-6xl font-extrabold mb-4 tracking-wide">
+                <h1 class="text-3xl md:text-6xl font-extrabold mb-4 tracking-wide text-sabotage-light">
                     {{ siteConfig.sectionTitles().testimonials }}
                 </h1>
                 <p class="text-base md:text-xl text-sabotage-muted">
@@ -32,13 +32,13 @@ import { DbReview } from '../../core/models/product.model';
                 } @else {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                         @for (review of reviews(); track review.id) {
-                            <article class="bg-sabotage-dark border-2 border-sabotage-border p-6 md:p-8 rounded-[10px] transition-all duration-300 hover:border-sabotage-light hover:-translate-y-[5px] hover:shadow-[0_10px_30px_rgba(242,242,242,0.1)]">
+                            <article class="bg-sabotage-dark border-2 border-sabotage-border p-6 md:p-8 rounded-[10px] transition-all duration-300 hover:border-sabotage-light hover:-translate-y-[5px] hover:shadow-lg">
                                 <div class="text-xl md:text-2xl mb-4">
                                     @for (star of getStars(review.stars); track $index) {
                                         ⭐
                                     }
                                 </div>
-                                <p class="text-sm md:text-base leading-relaxed mb-4 italic text-[#ccc]">
+                                <p class="text-sm md:text-base leading-relaxed mb-4 italic text-sabotage-muted">
                                     "{{ review.text }}"
                                 </p>
                                 <div class="flex justify-between items-center pt-4 border-t border-sabotage-border">
@@ -52,9 +52,9 @@ import { DbReview } from '../../core/models/product.model';
             </section>
 
             <!-- Submit Form Section -->
-            <section class="py-12 md:py-20 px-5 md:px-10 bg-black border-t-[3px] border-sabotage-light">
+            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-t-[3px] border-sabotage-light">
                 <div class="max-w-[800px] mx-auto text-center">
-                    <h2 class="text-3xl md:text-5xl font-extrabold mb-5 tracking-wide">
+                    <h2 class="text-3xl md:text-5xl font-extrabold mb-5 tracking-wide text-sabotage-light">
                         ✍️ COMPARTE TU EXPERIENCIA
                     </h2>
                     <p class="text-base md:text-xl mb-8 text-sabotage-muted">
@@ -72,7 +72,7 @@ import { DbReview } from '../../core/models/product.model';
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                                 <!-- Nombre -->
                                 <div class="flex flex-col">
-                                    <label for="author" class="text-sm font-bold mb-2 tracking-wide">
+                                    <label for="author" class="text-sm font-bold mb-2 tracking-wide text-sabotage-light">
                                         TU NOMBRE *
                                     </label>
                                     <input
@@ -89,7 +89,7 @@ import { DbReview } from '../../core/models/product.model';
 
                                 <!-- Calificación -->
                                 <div class="flex flex-col">
-                                    <label class="text-sm font-bold mb-2 tracking-wide">
+                                    <label class="text-sm font-bold mb-2 tracking-wide text-sabotage-light">
                                         CALIFICACIÓN *
                                     </label>
                                     <div class="flex gap-2 py-3" role="radiogroup" aria-label="Calificación">
@@ -111,7 +111,7 @@ import { DbReview } from '../../core/models/product.model';
 
                             <!-- Reseña -->
                             <div class="flex flex-col mb-6">
-                                <label for="text" class="text-sm font-bold mb-2 tracking-wide">
+                                <label for="text" class="text-sm font-bold mb-2 tracking-wide text-sabotage-light">
                                     TU RESEÑA *
                                 </label>
                                 <textarea
@@ -131,7 +131,7 @@ import { DbReview } from '../../core/models/product.model';
                                 <button
                                     type="submit"
                                     [disabled]="submitting() || !isFormValid()"
-                                    class="px-8 md:px-10 py-4 md:py-5 bg-sabotage-light text-black font-bold text-base uppercase tracking-wide transition-all duration-300 hover:bg-white hover:scale-105 disabled:bg-[#555] disabled:text-[#888] disabled:cursor-not-allowed disabled:transform-none"
+                                    class="px-8 md:px-10 py-4 md:py-5 bg-sabotage-light text-sabotage-black font-bold text-base uppercase tracking-wide transition-all duration-300 hover:opacity-80 hover:scale-105 disabled:bg-[#555] disabled:text-[#888] disabled:cursor-not-allowed disabled:transform-none"
                                 >
                                     {{ submitting() ? 'ENVIANDO...' : 'ENVIAR RESEÑA' }}
                                 </button>
