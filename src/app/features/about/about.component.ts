@@ -20,7 +20,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
             </section>
 
             <!-- Intro Section: ¿Quiénes somos? -->
-            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black">
+            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black" data-aos="fade-up">
                 <div class="max-w-[1400px] mx-auto text-center">
                     <h2 class="text-3xl md:text-5xl font-extrabold mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                         {{ siteConfig.aboutPage().intro.title }}
@@ -34,7 +34,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
             </section>
 
             <!-- History Section: Nuestra Historia -->
-            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-t border-sabotage-border">
+            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-t border-sabotage-border" data-aos="fade-up">
                 <div class="max-w-[1400px] mx-auto text-center">
                     <h2 class="text-3xl md:text-5xl font-extrabold mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                         {{ siteConfig.aboutPage().history.title }}
@@ -60,7 +60,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                 <div class="relative z-10 max-w-[1400px] mx-auto">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20">
                         <!-- Mission -->
-                        <div class="text-center">
+                        <div class="text-center" data-aos="fade-right">
                             <h3 class="text-3xl md:text-4xl font-extrabold mb-8 text-sabotage-light tracking-wide uppercase">
                                 {{ siteConfig.aboutPage().mission_vision.mission_title }}
                             </h3>
@@ -69,7 +69,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                             </p>
                         </div>
                         <!-- Vision -->
-                        <div class="text-center">
+                        <div class="text-center" data-aos="fade-left">
                             <h3 class="text-3xl md:text-4xl font-extrabold mb-8 text-sabotage-light tracking-wide uppercase">
                                 {{ siteConfig.aboutPage().mission_vision.vision_title }}
                             </h3>
@@ -82,14 +82,14 @@ import { SiteConfigService } from '../../core/services/site-config.service';
             </section>
 
             <!-- Values Section -->
-            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-b border-sabotage-border">
+            <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-b border-sabotage-border" data-aos="fade-up">
                 <div class="max-w-[1400px] mx-auto">
                     <h2 class="text-3xl md:text-5xl font-extrabold text-center mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                         {{ siteConfig.aboutPage().values.title }}
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                         @for (value of siteConfig.aboutPage().values.items; track $index) {
-                            <div class="value-card group relative aspect-[4/3] overflow-hidden rounded-lg cursor-pointer">
+                            <div class="value-card group relative aspect-[4/3] overflow-hidden rounded-lg cursor-pointer" data-aos="zoom-in" [attr.data-aos-delay]="$index * 100">
                                 <!-- Default Image + Title -->
                                 <div class="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0">
                                     @if (value.image_url) {
@@ -134,14 +134,14 @@ import { SiteConfigService } from '../../core/services/site-config.service';
 
             <!-- Models Section: Nuestras estrellas de la camara -->
             @if (siteConfig.aboutPage().models.items.length > 0) {
-                <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black">
+                <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black" data-aos="fade-up">
                     <div class="max-w-[1400px] mx-auto">
                         <h2 class="text-3xl md:text-5xl font-extrabold text-center mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                             {{ siteConfig.aboutPage().models.title }}
                         </h2>
                         <div class="flex flex-wrap justify-center gap-8 md:gap-12">
-                            @for (model of siteConfig.aboutPage().models.items; track model.name) {
-                                <div class="text-center w-[300px] md:w-[420px]">
+                            @for (model of siteConfig.aboutPage().models.items; track model.name; let i = $index) {
+                                <div class="text-center w-[300px] md:w-[420px]" data-aos="fade-up" [attr.data-aos-delay]="i * 150">
                                     <div class="aspect-[3/4] bg-sabotage-gray rounded-lg overflow-hidden mb-4">
                                         @if (model.image_url) {
                                             <img 
@@ -175,5 +175,14 @@ export class AboutComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await this.siteConfig.loadConfigs();
+
+        // Initialize AOS after content is loaded
+        const AOS = await import('aos');
+        AOS.default.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: true,
+            offset: 50
+        });
     }
 }
