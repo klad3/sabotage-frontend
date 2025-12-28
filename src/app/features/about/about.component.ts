@@ -15,19 +15,17 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                         class="w-full h-auto object-cover"
                     />
                 } @else {
-                    <div class="w-full h-64 md:h-80 bg-sabotage-gray flex items-center justify-center border-b border-sabotage-border">
-                        <span class="text-2xl md:text-4xl font-extrabold text-sabotage-muted tracking-widest">BANNER WEB</span>
-                    </div>
+                    <div class="w-full h-64 md:h-80 bg-gradient-to-r from-sabotage-gray via-sabotage-dark to-sabotage-gray bg-[length:200%_100%] animate-pulse"></div>
                 }
             </section>
 
             <!-- Intro Section: ¿Quiénes somos? -->
             <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black">
-                <div class="max-w-4xl mx-auto text-center">
-                    <h2 class="text-2xl md:text-3xl font-extrabold mb-8 text-sabotage-light">
+                <div class="max-w-[1400px] mx-auto text-center">
+                    <h2 class="text-3xl md:text-5xl font-extrabold mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                         {{ siteConfig.aboutPage().intro.title }}
                     </h2>
-                    <div class="space-y-6 text-sabotage-muted text-base md:text-lg leading-relaxed">
+                    <div class="max-w-4xl mx-auto space-y-6 text-sabotage-muted text-base md:text-lg leading-relaxed">
                         @for (paragraph of siteConfig.aboutPage().intro.paragraphs; track $index) {
                             <p>{{ paragraph }}</p>
                         }
@@ -37,11 +35,11 @@ import { SiteConfigService } from '../../core/services/site-config.service';
 
             <!-- History Section: Nuestra Historia -->
             <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-t border-sabotage-border">
-                <div class="max-w-4xl mx-auto text-center">
-                    <h2 class="text-2xl md:text-3xl font-extrabold mb-8 text-sabotage-light">
+                <div class="max-w-[1400px] mx-auto text-center">
+                    <h2 class="text-3xl md:text-5xl font-extrabold mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                         {{ siteConfig.aboutPage().history.title }}
                     </h2>
-                    <div class="space-y-6 text-sabotage-muted text-base md:text-lg leading-relaxed">
+                    <div class="max-w-4xl mx-auto space-y-6 text-sabotage-muted text-base md:text-lg leading-relaxed">
                         @for (paragraph of siteConfig.aboutPage().history.paragraphs; track $index) {
                             <p>{{ paragraph }}</p>
                         }
@@ -59,11 +57,11 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                 @if (siteConfig.aboutPage().mission_vision.background_image) {
                     <div class="absolute inset-0 bg-black/60"></div>
                 }
-                <div class="relative z-10 max-w-6xl mx-auto">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
+                <div class="relative z-10 max-w-[1400px] mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20">
                         <!-- Mission -->
                         <div class="text-center">
-                            <h3 class="text-2xl md:text-3xl font-extrabold mb-6 text-sabotage-light">
+                            <h3 class="text-3xl md:text-4xl font-extrabold mb-8 text-sabotage-light tracking-wide uppercase">
                                 {{ siteConfig.aboutPage().mission_vision.mission_title }}
                             </h3>
                             <p class="text-sabotage-muted text-base md:text-lg leading-relaxed">
@@ -72,7 +70,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                         </div>
                         <!-- Vision -->
                         <div class="text-center">
-                            <h3 class="text-2xl md:text-3xl font-extrabold mb-6 text-sabotage-light">
+                            <h3 class="text-3xl md:text-4xl font-extrabold mb-8 text-sabotage-light tracking-wide uppercase">
                                 {{ siteConfig.aboutPage().mission_vision.vision_title }}
                             </h3>
                             <p class="text-sabotage-muted text-base md:text-lg leading-relaxed">
@@ -85,8 +83,8 @@ import { SiteConfigService } from '../../core/services/site-config.service';
 
             <!-- Values Section -->
             <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black border-b border-sabotage-border">
-                <div class="max-w-6xl mx-auto">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-center mb-12 text-sabotage-light">
+                <div class="max-w-[1400px] mx-auto">
+                    <h2 class="text-3xl md:text-5xl font-extrabold text-center mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                         {{ siteConfig.aboutPage().values.title }}
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -137,13 +135,13 @@ import { SiteConfigService } from '../../core/services/site-config.service';
             <!-- Models Section: Nuestras estrellas de la camara -->
             @if (siteConfig.aboutPage().models.items.length > 0) {
                 <section class="py-12 md:py-20 px-5 md:px-10 bg-sabotage-black">
-                    <div class="max-w-6xl mx-auto">
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-center mb-12 text-sabotage-light">
+                    <div class="max-w-[1400px] mx-auto">
+                        <h2 class="text-3xl md:text-5xl font-extrabold text-center mb-10 md:mb-16 text-sabotage-light tracking-wide uppercase">
                             {{ siteConfig.aboutPage().models.title }}
                         </h2>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                        <div class="flex flex-wrap justify-center gap-8 md:gap-12">
                             @for (model of siteConfig.aboutPage().models.items; track model.name) {
-                                <div class="text-center">
+                                <div class="text-center w-[300px] md:w-[420px]">
                                     <div class="aspect-[3/4] bg-sabotage-gray rounded-lg overflow-hidden mb-4">
                                         @if (model.image_url) {
                                             <img 
@@ -152,13 +150,13 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                                                 class="w-full h-full object-cover"
                                             />
                                         } @else {
-                                            <div class="w-full h-full flex items-center justify-center text-4xl text-sabotage-muted">
+                                            <div class="w-full h-full flex items-center justify-center text-5xl text-sabotage-muted">
                                                 📷
                                             </div>
                                         }
                                     </div>
                                     @if (model.name) {
-                                        <p class="text-sabotage-light font-semibold">{{ model.name }}</p>
+                                        <p class="text-sabotage-light font-semibold text-lg md:text-xl">{{ model.name }}</p>
                                     }
                                 </div>
                             }
