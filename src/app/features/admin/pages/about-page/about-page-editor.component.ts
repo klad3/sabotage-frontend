@@ -159,7 +159,7 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
                     <span class="section-icon">✨</span>
                     <h2>Valores</h2>
                 </div>
-                <p class="section-desc">Cada valor puede tener una imagen circular que aparece encima del texto</p>
+                <p class="section-desc">Cada valor tiene un título, imagen por defecto e imagen al pasar el mouse</p>
                 
                 <div class="form-group">
                     <label>Título de Sección</label>
@@ -168,23 +168,41 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
                 
                 <div class="values-grid">
                     @for (value of config.values.items; track $index; let i = $index) {
-                        <div class="value-card">
-                            <div class="value-image-upload">
-                                @if (valuePreviews()[i] || value.image_url) {
-                                    <img [src]="valuePreviews()[i] || value.image_url" alt="">
-                                    <button class="btn-remove-circle" (click)="removeValueImage(i)">✕</button>
-                                } @else {
-                                    <input type="file" accept="image/*" (change)="onValueImageChange($event, i)" [id]="'value-upload-' + i">
-                                    <label [for]="'value-upload-' + i" class="upload-label-circle">
-                                        📤
-                                    </label>
-                                }
+                        <div class="value-card-wide">
+                            <div class="value-header">
+                                <input type="text" [(ngModel)]="value.title" placeholder="TÍTULO (ej: CALIDAD)" class="title-input">
+                                <button class="btn-delete-value" (click)="removeValue(i)">🗑️</button>
                             </div>
-                            <textarea [(ngModel)]="value.text" rows="3" placeholder="Describe este valor..."></textarea>
-                            <button class="btn-delete-value" (click)="removeValue(i)">🗑️ Eliminar</button>
+                            <div class="value-images">
+                                <div class="value-image-box">
+                                    <span class="image-label">Imagen Normal</span>
+                                    @if (valuePreviews()[i] || value.image_url) {
+                                        <div class="image-preview-box">
+                                            <img [src]="valuePreviews()[i] || value.image_url" alt="">
+                                            <button class="btn-remove-mini" (click)="removeValueImage(i)">✕</button>
+                                        </div>
+                                    } @else {
+                                        <input type="file" accept="image/*" (change)="onValueImageChange($event, i)" [id]="'value-upload-' + i">
+                                        <label [for]="'value-upload-' + i" class="upload-box">📤</label>
+                                    }
+                                </div>
+                                <div class="value-image-box">
+                                    <span class="image-label">Imagen Hover</span>
+                                    @if (valueHoverPreviews()[i] || value.hover_image_url) {
+                                        <div class="image-preview-box">
+                                            <img [src]="valueHoverPreviews()[i] || value.hover_image_url" alt="">
+                                            <button class="btn-remove-mini" (click)="removeValueHoverImage(i)">✕</button>
+                                        </div>
+                                    } @else {
+                                        <input type="file" accept="image/*" (change)="onValueHoverImageChange($event, i)" [id]="'value-hover-upload-' + i">
+                                        <label [for]="'value-hover-upload-' + i" class="upload-box">📤</label>
+                                    }
+                                </div>
+                            </div>
+                            <textarea [(ngModel)]="value.text" rows="2" placeholder="Descripción que aparece al pasar el mouse..."></textarea>
                         </div>
                     }
-                    <button class="btn-add-value" (click)="addValue()">
+                    <button class="btn-add-value-wide" (click)="addValue()">
                         <span>➕</span>
                         <span>Agregar Valor</span>
                     </button>
@@ -491,8 +509,8 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
         }
 
         .values-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 16px;
             margin-top: 16px;
         }
@@ -565,25 +583,121 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
         }
 
         .btn-delete-value {
-            margin-top: 12px;
             padding: 6px 12px;
-            background: rgba(244, 63, 94, 0.1);
+            background: rgba(244, 63, 94, 0.2);
             border: none;
             border-radius: 6px;
             color: #f43f5e;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
         }
 
-        .btn-delete-value:hover { background: rgba(244, 63, 94, 0.2); }
+        .btn-delete-value:hover { background: rgba(244, 63, 94, 0.3); }
 
-        .btn-add-value {
+        .value-card-wide {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .value-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .title-input {
+            flex: 1;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .value-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .value-image-box {
             display: flex;
             flex-direction: column;
+            gap: 8px;
+        }
+
+        .image-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        .image-preview-box {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .image-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-remove-mini {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(244, 63, 94, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .upload-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 4/3;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .upload-box:hover { border-color: #feca57; }
+
+        .value-card-wide textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .btn-add-value-wide {
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            min-height: 150px;
+            padding: 16px;
             background: rgba(255, 255, 255, 0.02);
             border: 2px dashed rgba(255, 255, 255, 0.15);
             border-radius: 12px;
@@ -592,12 +706,12 @@ import { AboutPageConfig, AboutPageModel } from '../../../../core/models/product
             font-size: 14px;
         }
 
-        .btn-add-value:hover {
+        .btn-add-value-wide:hover {
             border-color: rgba(254, 202, 87, 0.4);
             color: #feca57;
         }
 
-        .btn-add-value span:first-child { font-size: 24px; }
+        .btn-add-value-wide span:first-child { font-size: 20px; }
 
         .models-grid {
             display: grid;
@@ -725,19 +839,23 @@ export class AboutPageEditorComponent implements OnInit {
     readonly bannerPreview = signal<string | null>(null);
     readonly missionBgPreview = signal<string | null>(null);
     readonly valuePreviews = signal<(string | null)[]>([]);
+    readonly valueHoverPreviews = signal<(string | null)[]>([]);
     readonly modelPreviews = signal<(string | null)[]>([]);
 
     // Files to upload
     private bannerFile: File | null = null;
     private missionBgFile: File | null = null;
     private valueFiles: (File | null)[] = [];
+    private valueHoverFiles: (File | null)[] = [];
     private modelFiles: (File | null)[] = [];
 
     async ngOnInit(): Promise<void> {
         await this.siteConfig.loadConfigs();
         this.config = JSON.parse(JSON.stringify(this.siteConfig.aboutPage()));
         this.valuePreviews.set(new Array(this.config.values.items.length).fill(null));
+        this.valueHoverPreviews.set(new Array(this.config.values.items.length).fill(null));
         this.valueFiles = new Array(this.config.values.items.length).fill(null);
+        this.valueHoverFiles = new Array(this.config.values.items.length).fill(null);
         this.modelPreviews.set(new Array(this.config.models.items.length).fill(null));
         this.modelFiles = new Array(this.config.models.items.length).fill(null);
         this.cdr.markForCheck();
@@ -818,16 +936,22 @@ export class AboutPageEditorComponent implements OnInit {
 
     // Values
     addValue(): void {
-        this.config.values.items.push({ text: '', image_url: null });
+        this.config.values.items.push({ title: '', text: '', image_url: null, hover_image_url: null });
         this.valueFiles.push(null);
+        this.valueHoverFiles.push(null);
         this.valuePreviews.set([...this.valuePreviews(), null]);
+        this.valueHoverPreviews.set([...this.valueHoverPreviews(), null]);
     }
     removeValue(index: number): void {
         this.config.values.items.splice(index, 1);
         this.valueFiles.splice(index, 1);
+        this.valueHoverFiles.splice(index, 1);
         const previews = [...this.valuePreviews()];
         previews.splice(index, 1);
         this.valuePreviews.set(previews);
+        const hoverPreviews = [...this.valueHoverPreviews()];
+        hoverPreviews.splice(index, 1);
+        this.valueHoverPreviews.set(hoverPreviews);
     }
 
     // Value images
@@ -851,6 +975,29 @@ export class AboutPageEditorComponent implements OnInit {
         previews[index] = null;
         this.valuePreviews.set(previews);
         this.config.values.items[index].image_url = null;
+    }
+
+    // Value hover images
+    onValueHoverImageChange(event: Event, index: number): void {
+        const input = event.target as HTMLInputElement;
+        if (input.files?.[0]) {
+            this.valueHoverFiles[index] = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previews = [...this.valueHoverPreviews()];
+                previews[index] = e.target?.result as string;
+                this.valueHoverPreviews.set(previews);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    removeValueHoverImage(index: number): void {
+        this.valueHoverFiles[index] = null;
+        const previews = [...this.valueHoverPreviews()];
+        previews[index] = null;
+        this.valueHoverPreviews.set(previews);
+        this.config.values.items[index].hover_image_url = null;
     }
 
     // Models
@@ -893,6 +1040,14 @@ export class AboutPageEditorComponent implements OnInit {
                 }
             }
 
+            // Upload value hover images
+            for (let i = 0; i < this.valueHoverFiles.length; i++) {
+                if (this.valueHoverFiles[i]) {
+                    const fileName = `about_value_hover_${Date.now()}_${i}_${this.valueHoverFiles[i]!.name}`;
+                    this.config.values.items[i].hover_image_url = await this.supabase.uploadFile('banners', fileName, this.valueHoverFiles[i]!);
+                }
+            }
+
             // Upload model images
             for (let i = 0; i < this.modelFiles.length; i++) {
                 if (this.modelFiles[i]) {
@@ -911,6 +1066,7 @@ export class AboutPageEditorComponent implements OnInit {
                 this.bannerFile = null;
                 this.missionBgFile = null;
                 this.valueFiles = this.valueFiles.map(() => null);
+                this.valueHoverFiles = this.valueHoverFiles.map(() => null);
                 this.modelFiles = this.modelFiles.map(() => null);
                 this.bannerPreview.set(null);
                 this.missionBgPreview.set(null);

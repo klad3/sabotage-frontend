@@ -89,21 +89,45 @@ import { SiteConfigService } from '../../core/services/site-config.service';
                     <h2 class="text-2xl md:text-3xl font-extrabold text-center mb-12 text-sabotage-light">
                         {{ siteConfig.aboutPage().values.title }}
                     </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                         @for (value of siteConfig.aboutPage().values.items; track $index) {
-                            <div class="text-center flex flex-col items-center">
-                                @if (value.image_url) {
-                                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden mb-6 border-2 border-sabotage-border">
+                            <div class="value-card group relative aspect-[4/3] overflow-hidden rounded-lg cursor-pointer">
+                                <!-- Default Image + Title -->
+                                <div class="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0">
+                                    @if (value.image_url) {
                                         <img 
                                             [src]="value.image_url" 
-                                            alt=""
+                                            [alt]="value.title"
                                             class="w-full h-full object-cover"
                                         />
+                                    } @else {
+                                        <div class="w-full h-full bg-sabotage-gray"></div>
+                                    }
+                                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                        <span class="text-white text-2xl md:text-3xl font-bold tracking-widest uppercase">{{ value.title }}</span>
                                     </div>
-                                }
-                                <p class="text-sabotage-muted text-base md:text-lg leading-relaxed">
-                                    {{ value.text }}
-                                </p>
+                                </div>
+                                <!-- Hover Image + Text -->
+                                <div class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                    @if (value.hover_image_url) {
+                                        <img 
+                                            [src]="value.hover_image_url" 
+                                            [alt]="value.title"
+                                            class="w-full h-full object-cover"
+                                        />
+                                    } @else if (value.image_url) {
+                                        <img 
+                                            [src]="value.image_url" 
+                                            [alt]="value.title"
+                                            class="w-full h-full object-cover"
+                                        />
+                                    } @else {
+                                        <div class="w-full h-full bg-sabotage-dark"></div>
+                                    }
+                                    <div class="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
+                                        <p class="text-white text-sm md:text-base text-center leading-relaxed">{{ value.text }}</p>
+                                    </div>
+                                </div>
                             </div>
                         }
                     </div>

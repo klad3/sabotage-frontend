@@ -105,9 +105,9 @@ const DEFAULT_ABOUT_PAGE: AboutPageConfig = {
     values: {
         title: 'Valores',
         items: [
-            { text: 'Priorizamos materiales y acabados que garanticen comodidad, durabilidad y una experiencia que se note desde el primer uso.', image_url: null },
-            { text: 'Creemos en el estilo propio. Cada prenda está pensada para que nuestros clientes se expresen tal como son, sin seguir reglas impuestas.', image_url: null },
-            { text: 'Escuchamos a nuestra comunidad y creamos pensando en sus gustos, necesidades y forma de vivir la moda.', image_url: null }
+            { title: 'CALIDAD', text: 'Priorizamos materiales y acabados que garanticen comodidad, durabilidad y una experiencia que se note desde el primer uso.', image_url: null, hover_image_url: null },
+            { title: 'AUTENTICIDAD', text: 'Creemos en el estilo propio. Cada prenda está pensada para que nuestros clientes se expresen tal como son, sin seguir reglas impuestas.', image_url: null, hover_image_url: null },
+            { title: 'COMUNIDAD', text: 'Escuchamos a nuestra comunidad y creamos pensando en sus gustos, necesidades y forma de vivir la moda.', image_url: null, hover_image_url: null }
         ]
     },
     models: {

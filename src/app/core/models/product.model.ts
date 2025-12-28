@@ -417,8 +417,10 @@ export interface AboutPageMissionVision {
 }
 
 export interface AboutPageValue {
-    text: string;
-    image_url: string | null;  // Uploaded to banners bucket, shown above the value
+    title: string;  // Keyword shown on image (e.g., "CALIDAD")
+    text: string;  // Description shown on hover
+    image_url: string | null;  // Default image
+    hover_image_url: string | null;  // Image shown on hover
 }
 
 export interface AboutPageValues {
