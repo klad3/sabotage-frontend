@@ -73,8 +73,8 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
                             @for (product of filteredProducts(); track product.id) {
                                 <tr>
                                     <td class="image-cell">
-                                        @if (product.image_url) {
-                                            <img [src]="product.image_url" [alt]="product.name">
+                                        @if (getProductImage(product)) {
+                                            <img [src]="getProductImage(product)" [alt]="product.name">
                                         } @else {
                                             <div class="no-image">📷</div>
                                         }
@@ -554,12 +554,31 @@ export class ProductListComponent implements OnInit {
     private async loadData(): Promise<void> {
         this.loading.set(true);
         try {
-            const [products, categories] = await Promise.all([
-                this.supabase.getAll<DbProduct>('products', {
+            // Load products with colors and images
+            const client = this.supabase.client;
+            let products: DbProduct[] = [];
+
+            if (client) {
+                const { data, error } = await client
+                    .from('products')
+                    .select(`
+                        *,
+                        colors:product_colors(
+                            *,
+                            images:product_images(*)
+                        )
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                products = data || [];
+            } else {
+                products = await this.supabase.getAll<DbProduct>('products', {
                     orderBy: { column: 'created_at', ascending: false }
-                }),
-                this.supabase.getAll<DbCategory>('categories')
-            ]);
+                });
+            }
+
+            const categories = await this.supabase.getAll<DbCategory>('categories');
 
             this.products.set(products);
             this.filteredProducts.set(products);
@@ -599,6 +618,19 @@ export class ProductListComponent implements OnInit {
         if (!categoryId) return '-';
         const category = this.categories().find(c => c.id === categoryId);
         return category?.name || '-';
+    }
+
+    getProductImage(product: DbProduct): string | null {
+        // Try to get image from default color
+        if (product.colors && product.colors.length > 0) {
+            const defaultColor = product.colors.find(c => c.is_default) || product.colors[0];
+            if (defaultColor?.images && defaultColor.images.length > 0) {
+                const primaryImage = defaultColor.images.find(img => img.is_primary);
+                return primaryImage?.image_url || defaultColor.images[0]?.image_url || null;
+            }
+        }
+        // Fallback to legacy image_url
+        return product.image_url || null;
     }
 
     confirmDelete(product: DbProduct): void {

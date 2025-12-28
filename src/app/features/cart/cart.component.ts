@@ -30,7 +30,7 @@ import { CartSummaryComponent } from './components/cart-summary/cart-summary.com
             <p class="text-lg text-[#888] mb-8">¡Agrega productos y viste tu pasión!</p>
             <a
               routerLink="/oversize"
-              class="inline-block px-8 py-4 bg-sabotage-light text-black font-bold tracking-wider rounded transition-all duration-300 hover:bg-white hover:scale-105"
+              class="inline-block px-8 py-4 bg-sabotage-light text-sabotage-black font-bold tracking-wider rounded transition-all duration-300 hover:opacity-90 hover:scale-105"
             >
               EXPLORAR PRODUCTOS
             </a>
