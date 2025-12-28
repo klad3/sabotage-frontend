@@ -35,10 +35,29 @@ import { Product } from '../../../../core/models/product.model';
           {{ product().description }}
         </p>
 
-        <!-- Theme tag: fixed height area -->
-        <div class="h-7 mb-2">
+        <!-- Color indicators & Theme tag row -->
+        <div class="flex items-center justify-between gap-2 h-7 mb-2">
+          <!-- Color swatches -->
+          @if (product().colors.length > 1) {
+            <div class="flex items-center gap-1">
+              @for (color of product().colors.slice(0, 4); track color.id) {
+                <span
+                  class="w-4 h-4 rounded-full border border-sabotage-border"
+                  [style.background-color]="color.hexCode || '#808080'"
+                  [attr.title]="color.name"
+                ></span>
+              }
+              @if (product().colors.length > 4) {
+                <span class="text-xs text-sabotage-muted ml-1">+{{ product().colors.length - 4 }}</span>
+              }
+            </div>
+          } @else {
+            <div></div>
+          }
+
+          <!-- Theme tag -->
           @if (product().theme) {
-            <span class="inline-block px-2 md:px-3 py-1 bg-sabotage-border text-sabotage-light text-xs rounded-xl font-semibold uppercase">
+            <span class="inline-block px-2 md:px-3 py-1 bg-sabotage-border text-sabotage-light text-xs rounded-xl font-semibold uppercase truncate max-w-[50%]">
               {{ product().theme }}
             </span>
           }

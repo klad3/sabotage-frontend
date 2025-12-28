@@ -136,9 +136,15 @@ export class CatalogComponent {
         return false;
       }
 
-      // Color filter
-      if (filters.colors.length > 0 && !filters.colors.includes(product.color)) {
-        return false;
+      // Color filter - check against product.colors array
+      if (filters.colors.length > 0) {
+        const productColorNames = product.colors.map(c => c.name.toLowerCase());
+        const hasMatchingColor = filters.colors.some(fc =>
+          productColorNames.includes(fc.toLowerCase())
+        );
+        if (!hasMatchingColor) {
+          return false;
+        }
       }
 
       // Theme filter (only for personalized products)

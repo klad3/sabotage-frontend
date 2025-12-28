@@ -5,12 +5,34 @@ export interface Product {
     price: number;
     category: string;
     type: 'simple' | 'personalizado';
-    color: string;
     theme: string;
     sizes: string[];
-    imageUrl: string;
     inStock: boolean;
     createdAt?: Date;
+    // Multi-color system
+    colors: ProductColor[];
+    defaultColor?: ProductColor;
+    // Legacy field for backward compatibility (computed from default color)
+    imageUrl: string;
+}
+
+/** Frontend color variant */
+export interface ProductColor {
+    id: string;
+    name: string;
+    hexCode: string | null;
+    displayOrder: number;
+    isDefault: boolean;
+    inStock: boolean;
+    images: ProductImage[];
+}
+
+/** Frontend product image */
+export interface ProductImage {
+    id: string;
+    url: string;
+    displayOrder: number;
+    isPrimary: boolean;
 }
 
 // ============================================
@@ -29,6 +51,7 @@ export interface DbCartItem {
     id: string;
     cart_id: string;
     product_id: string;
+    product_color_id: string | null; // NEW: Selected color
     size: string;
     quantity: number;
     created_at: string;
@@ -40,11 +63,13 @@ export interface HydratedCartItem {
     id: string;
     cart_id: string;
     product_id: string;
+    product_color_id: string | null;
     size: string;
     quantity: number;
     created_at: string;
     updated_at: string;
     product: DbProduct;
+    product_color?: DbProductColor; // NEW: Joined color data
 }
 
 /** @deprecated Use HydratedCartItem instead - kept for migration compatibility */
@@ -160,16 +185,42 @@ export interface DbProduct {
     price: number;
     category_id: string | null;
     type: 'simple' | 'personalizado';
-    color: string | null;
     theme: string | null;
     sizes: string[];
-    image_url: string | null;
     in_stock: boolean;
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    // Legacy fields (kept for backward compatibility during migration)
+    color?: string | null;
+    image_url?: string | null;
     // Joined data
     category?: DbCategory;
+    colors?: DbProductColor[]; // NEW: Color variants
+}
+
+/** Product color variant in Supabase */
+export interface DbProductColor {
+    id: string;
+    product_id: string;
+    color_name: string;
+    hex_code: string | null;
+    display_order: number;
+    is_default: boolean;
+    in_stock: boolean;
+    created_at: string;
+    // Joined data
+    images?: DbProductImage[];
+}
+
+/** Product image in Supabase */
+export interface DbProductImage {
+    id: string;
+    product_color_id: string;
+    image_url: string;
+    display_order: number;
+    is_primary: boolean;
+    created_at: string;
 }
 
 export interface DbCategory {
@@ -260,8 +311,40 @@ export interface DbBanner {
     updated_at: string;
 }
 
+// Helper function to convert DB product color to frontend ProductColor
+export function dbProductColorToProductColor(dbColor: DbProductColor): ProductColor {
+    return {
+        id: dbColor.id,
+        name: dbColor.color_name,
+        hexCode: dbColor.hex_code,
+        displayOrder: dbColor.display_order,
+        isDefault: dbColor.is_default,
+        inStock: dbColor.in_stock,
+        images: (dbColor.images || []).map(img => ({
+            id: img.id,
+            url: img.image_url,
+            displayOrder: img.display_order,
+            isPrimary: img.is_primary
+        })).sort((a, b) => a.displayOrder - b.displayOrder)
+    };
+}
+
 // Helper function to convert DB product to frontend Product
 export function dbProductToProduct(dbProduct: DbProduct, categorySlug?: string): Product {
+    // Convert colors if available
+    const colors = (dbProduct.colors || []).map(dbProductColorToProductColor)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+
+    // Find default color
+    const defaultColor = colors.find(c => c.isDefault) || colors[0];
+
+    // Get primary image from default color (for backward compatibility)
+    const primaryImage = defaultColor?.images?.find(img => img.isPrimary)
+        || defaultColor?.images?.[0];
+
+    // Legacy fallback: use old image_url if no colors exist yet
+    const imageUrl = primaryImage?.url || dbProduct.image_url || '';
+
     return {
         id: dbProduct.id,
         name: dbProduct.name,
@@ -269,12 +352,13 @@ export function dbProductToProduct(dbProduct: DbProduct, categorySlug?: string):
         price: dbProduct.price,
         category: categorySlug || dbProduct.category?.slug || 'oversize',
         type: dbProduct.type,
-        color: dbProduct.color || '',
         theme: dbProduct.theme || '',
         sizes: dbProduct.sizes || [],
-        imageUrl: dbProduct.image_url || '',
         inStock: dbProduct.in_stock,
-        createdAt: new Date(dbProduct.created_at)
+        createdAt: new Date(dbProduct.created_at),
+        colors,
+        defaultColor,
+        imageUrl
     };
 }
 

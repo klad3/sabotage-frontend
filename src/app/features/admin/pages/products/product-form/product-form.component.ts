@@ -1,8 +1,25 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormArray, FormGroup } from '@angular/forms';
 import { SupabaseService } from '../../../../../core/services/supabase.service';
-import { DbProduct, DbCategory } from '../../../../../core/models/product.model';
+import { DbProduct, DbCategory, DbProductColor, DbProductImage } from '../../../../../core/models/product.model';
+
+interface ColorFormData {
+    id?: string;
+    color_name: string;
+    hex_code: string;
+    is_default: boolean;
+    in_stock: boolean;
+    images: ImageFormData[];
+    newImages: File[];
+}
+
+interface ImageFormData {
+    id: string;
+    image_url: string;
+    is_primary: boolean;
+    display_order: number;
+}
 
 @Component({
     selector: 'app-product-form',
@@ -86,24 +103,14 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="color">Color</label>
+                                        <label for="theme">Temática</label>
                                         <input 
                                             type="text" 
-                                            id="color" 
-                                            formControlName="color"
-                                            placeholder="Ej: negro, blanco"
+                                            id="theme" 
+                                            formControlName="theme"
+                                            placeholder="Ej: anime, urbano, gaming"
                                         >
                                     </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="theme">Temática</label>
-                                    <input 
-                                        type="text" 
-                                        id="theme" 
-                                        formControlName="theme"
-                                        placeholder="Ej: anime, urbano, gaming"
-                                    >
                                 </div>
 
                                 <div class="form-group">
@@ -122,46 +129,123 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
                                     </div>
                                 </div>
                             </section>
+
+                            <!-- Color Variants Section -->
+                            <section class="form-section">
+                                <div class="section-header">
+                                    <h2>Colores y Variantes</h2>
+                                    <button type="button" class="btn-add" (click)="addColor()">
+                                        + Agregar Color
+                                    </button>
+                                </div>
+
+                                @if (colorVariants().length === 0) {
+                                    <div class="empty-colors">
+                                        <p>No hay colores definidos. Agrega al menos un color con sus imágenes.</p>
+                                    </div>
+                                }
+
+                                @for (color of colorVariants(); track color.id || $index; let i = $index) {
+                                    <div class="color-card" [class.is-default]="color.is_default">
+                                        <div class="color-header">
+                                            <div class="color-preview" [style.background-color]="color.hex_code || '#808080'"></div>
+                                            <input 
+                                                type="text" 
+                                                [value]="color.color_name"
+                                                (input)="updateColorName(i, $event)"
+                                                placeholder="Nombre del color"
+                                                class="color-name-input"
+                                            >
+                                            <input 
+                                                type="color" 
+                                                [value]="color.hex_code || '#808080'"
+                                                (input)="updateColorHex(i, $event)"
+                                                class="color-picker"
+                                                title="Seleccionar color"
+                                            >
+                                            <label class="toggle-small">
+                                                <input 
+                                                    type="checkbox" 
+                                                    [checked]="color.in_stock"
+                                                    (change)="toggleColorStock(i)"
+                                                >
+                                                <span>En Stock</span>
+                                            </label>
+                                            <button 
+                                                type="button" 
+                                                class="btn-default"
+                                                [disabled]="color.is_default"
+                                                (click)="setDefaultColor(i)"
+                                                title="Establecer como color por defecto"
+                                            >
+                                                {{ color.is_default ? '★ Por defecto' : '☆ Hacer default' }}
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                class="btn-remove-color"
+                                                (click)="removeColor(i)"
+                                                title="Eliminar color"
+                                                [disabled]="colorVariants().length === 1"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+
+                                        <!-- Images for this color -->
+                                        <div class="color-images">
+                                            <div class="images-grid">
+                                                @for (img of color.images; track img.id; let j = $index) {
+                                                    <div class="image-thumb" [class.is-primary]="img.is_primary">
+                                                        <img [src]="img.image_url" alt="Imagen">
+                                                        <div class="image-actions">
+                                                            <button 
+                                                                type="button"
+                                                                (click)="setPrimaryImage(i, j)"
+                                                                [disabled]="img.is_primary"
+                                                                title="Hacer imagen principal"
+                                                            >
+                                                                ★
+                                                            </button>
+                                                            <button 
+                                                                type="button"
+                                                                (click)="removeImage(i, j)"
+                                                                title="Eliminar imagen"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                <!-- Upload new images -->
+                                                <div class="image-upload-thumb" (click)="triggerImageUpload(i)">
+                                                    <span>+</span>
+                                                    <small>Agregar</small>
+                                                </div>
+                                                <input 
+                                                    #imageInput
+                                                    type="file" 
+                                                    accept="image/*"
+                                                    multiple
+                                                    (change)="onImagesSelected(i, $event)"
+                                                    [attr.data-color-index]="i"
+                                                    style="display: none"
+                                                >
+                                            </div>
+                                            @if (color.newImages.length > 0) {
+                                                <p class="pending-uploads">{{ color.newImages.length }} imagen(es) pendiente(s) de subir</p>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </section>
                         </div>
 
                         <div class="form-sidebar">
                             <section class="form-section">
-                                <h2>Imagen</h2>
-                                
-                                <div class="image-upload">
-                                    @if (imagePreview()) {
-                                        <div class="image-preview">
-                                            <img [src]="imagePreview()" alt="Preview">
-                                            <button type="button" class="remove-image" (click)="removeImage()">✕</button>
-                                        </div>
-                                    } @else {
-                                        <div class="upload-area" (click)="fileInput.click()">
-                                            <span class="upload-icon">📷</span>
-                                            <p>Haz clic para subir imagen</p>
-                                            <span class="upload-hint">PNG, JPG hasta 2MB</span>
-                                        </div>
-                                    }
-                                    <input 
-                                        #fileInput
-                                        type="file" 
-                                        accept="image/*"
-                                        (change)="onFileSelected($event)"
-                                        style="display: none"
-                                    >
-                                </div>
-
-                                @if (uploadProgress() > 0 && uploadProgress() < 100) {
-                                    <div class="upload-progress">
-                                        <div class="progress-bar" [style.width.%]="uploadProgress()"></div>
-                                    </div>
-                                }
-                            </section>
-
-                            <section class="form-section">
                                 <h2>Estado</h2>
                                 
                                 <label class="toggle-field">
-                                    <span>En Stock</span>
+                                    <span>En Stock (General)</span>
                                     <input type="checkbox" formControlName="in_stock">
                                     <span class="toggle"></span>
                                 </label>
@@ -173,11 +257,20 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
                                 </label>
                             </section>
 
+                            <section class="form-section">
+                                <h2>Resumen</h2>
+                                <div class="summary-info">
+                                    <p><strong>Colores:</strong> {{ colorVariants().length }}</p>
+                                    <p><strong>Imágenes:</strong> {{ totalImages() }}</p>
+                                    <p><strong>Tallas:</strong> {{ selectedSizes().join(', ') || 'Ninguna' }}</p>
+                                </div>
+                            </section>
+
                             <div class="form-actions">
                                 <button 
                                     type="submit" 
                                     class="btn-primary"
-                                    [disabled]="productForm.invalid || saving()"
+                                    [disabled]="productForm.invalid || saving() || colorVariants().length === 0"
                                 >
                                     @if (saving()) {
                                         <span class="spinner-small"></span>
@@ -269,6 +362,36 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
             margin: 0 0 20px;
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header h2 {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .btn-add {
+            padding: 8px 16px;
+            background: rgba(254, 202, 87, 0.2);
+            border: 1px solid #feca57;
+            border-radius: 8px;
+            color: #feca57;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-add:hover {
+            background: rgba(254, 202, 87, 0.3);
         }
 
         .form-group {
@@ -366,83 +489,208 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
             font-weight: 500;
         }
 
-        .image-upload {
+        /* Color Cards */
+        .empty-colors {
+            padding: 40px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .color-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
             margin-bottom: 16px;
         }
 
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 40px 20px;
-            text-align: center;
+        .color-card.is-default {
+            border-color: #feca57;
+        }
+
+        .color-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .color-preview {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .color-name-input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 12px !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 8px !important;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 32px;
+            padding: 0 !important;
+            border: none !important;
+            cursor: pointer;
+            background: transparent !important;
+        }
+
+        .toggle-small {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .toggle-small input {
+            width: auto !important;
+        }
+
+        .btn-default {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .upload-area:hover {
+        .btn-default:hover:not(:disabled) {
             border-color: #feca57;
-            background: rgba(254, 202, 87, 0.05);
+            color: #feca57;
         }
 
-        .upload-icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 12px;
+        .btn-default:disabled {
+            background: rgba(254, 202, 87, 0.2);
+            border-color: #feca57;
+            color: #feca57;
+            cursor: default;
         }
 
-        .upload-area p {
-            color: #fff;
-            margin: 0 0 8px;
+        .btn-remove-color {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            border-radius: 6px;
+            color: #ff6b6b;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .upload-hint {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 12px;
+        .btn-remove-color:hover:not(:disabled) {
+            background: rgba(255, 107, 107, 0.4);
         }
 
-        .image-preview {
+        .btn-remove-color:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Color Images */
+        .color-images {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .images-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .image-thumb {
             position: relative;
-            border-radius: 12px;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
             overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
         }
 
-        .image-preview img {
+        .image-thumb.is-primary {
+            border-color: #feca57;
+        }
+
+        .image-thumb img {
             width: 100%;
-            aspect-ratio: 1;
+            height: 100%;
             object-fit: cover;
         }
 
-        .remove-image {
+        .image-actions {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            gap: 2px;
+        }
+
+        .image-actions button {
+            flex: 1;
+            padding: 4px;
             background: rgba(0, 0, 0, 0.7);
             border: none;
-            border-radius: 50%;
             color: #fff;
+            font-size: 12px;
             cursor: pointer;
             transition: background 0.2s;
         }
 
-        .remove-image:hover {
-            background: #f43f5e;
+        .image-actions button:first-child:disabled {
+            color: #feca57;
         }
 
-        .upload-progress {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
+        .image-actions button:last-child:hover {
+            background: #ff6b6b;
         }
 
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b6b, #feca57);
-            transition: width 0.3s;
+        .image-upload-thumb {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.5);
         }
 
+        .image-upload-thumb:hover {
+            border-color: #feca57;
+            color: #feca57;
+        }
+
+        .image-upload-thumb span {
+            font-size: 24px;
+        }
+
+        .image-upload-thumb small {
+            font-size: 10px;
+        }
+
+        .pending-uploads {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #feca57;
+        }
+
+        /* Toggle Fields */
         .toggle-field {
             display: flex;
             align-items: center;
@@ -494,6 +742,17 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
             transform: translateX(22px);
         }
 
+        /* Summary */
+        .summary-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .summary-info p {
+            margin: 8px 0;
+        }
+
+        /* Actions */
         .form-actions {
             display: flex;
             flex-direction: column;
@@ -568,6 +827,15 @@ import { DbProduct, DbCategory } from '../../../../../core/models/product.model'
             .form-row {
                 grid-template-columns: 1fr;
             }
+
+            .color-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .color-header > * {
+                width: 100%;
+            }
         }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -583,13 +851,12 @@ export class ProductFormComponent implements OnInit {
     readonly isEditMode = signal(false);
     readonly categories = signal<DbCategory[]>([]);
     readonly selectedSizes = signal<string[]>([]);
-    readonly imagePreview = signal<string | null>(null);
-    readonly uploadProgress = signal(0);
+    readonly colorVariants = signal<ColorFormData[]>([]);
 
     readonly availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
     private productId: string | null = null;
-    private selectedFile: File | null = null;
+    private imageInputElements: HTMLInputElement[] = [];
 
     readonly productForm = this.fb.group({
         name: ['', Validators.required],
@@ -597,10 +864,15 @@ export class ProductFormComponent implements OnInit {
         price: [0, [Validators.required, Validators.min(0)]],
         category_id: [''],
         type: ['simple' as 'simple' | 'personalizado'],
-        color: [''],
         theme: [''],
         in_stock: [true],
         is_active: [true]
+    });
+
+    readonly totalImages = computed(() => {
+        return this.colorVariants().reduce((sum, color) =>
+            sum + color.images.length + color.newImages.length, 0
+        );
     });
 
     async ngOnInit(): Promise<void> {
@@ -612,6 +884,8 @@ export class ProductFormComponent implements OnInit {
         if (this.productId) {
             await this.loadProduct();
         } else {
+            // Start with one default color for new products
+            this.addColor();
             this.loading.set(false);
         }
     }
@@ -629,7 +903,24 @@ export class ProductFormComponent implements OnInit {
         if (!this.productId) return;
 
         try {
-            const product = await this.supabase.getById<DbProduct>('products', this.productId);
+            // Load product with colors and images
+            const client = this.supabase.client;
+            if (!client) throw new Error('Supabase not configured');
+
+            const { data: product, error } = await client
+                .from('products')
+                .select(`
+                    *,
+                    colors:product_colors(
+                        *,
+                        images:product_images(*)
+                    )
+                `)
+                .eq('id', this.productId)
+                .single();
+
+            if (error) throw error;
+
             if (product) {
                 this.productForm.patchValue({
                     name: product.name,
@@ -637,14 +928,44 @@ export class ProductFormComponent implements OnInit {
                     price: product.price,
                     category_id: product.category_id || '',
                     type: product.type,
-                    color: product.color || '',
                     theme: product.theme || '',
                     in_stock: product.in_stock,
                     is_active: product.is_active
                 });
                 this.selectedSizes.set(product.sizes || []);
-                if (product.image_url) {
-                    this.imagePreview.set(product.image_url);
+
+                // Load color variants
+                if (product.colors && product.colors.length > 0) {
+                    const colors: ColorFormData[] = product.colors.map((c: DbProductColor) => ({
+                        id: c.id,
+                        color_name: c.color_name,
+                        hex_code: c.hex_code || '#808080',
+                        is_default: c.is_default,
+                        in_stock: c.in_stock,
+                        images: (c.images || []).map((img: DbProductImage) => ({
+                            id: img.id,
+                            image_url: img.image_url,
+                            is_primary: img.is_primary,
+                            display_order: img.display_order
+                        })),
+                        newImages: []
+                    }));
+                    this.colorVariants.set(colors);
+                } else {
+                    // Legacy product without colors - create one from old data
+                    this.colorVariants.set([{
+                        color_name: product.color || 'Default',
+                        hex_code: '#808080',
+                        is_default: true,
+                        in_stock: product.in_stock,
+                        images: product.image_url ? [{
+                            id: 'legacy',
+                            image_url: product.image_url,
+                            is_primary: true,
+                            display_order: 0
+                        }] : [],
+                        newImages: []
+                    }]);
                 }
             }
         } catch (error) {
@@ -662,68 +983,159 @@ export class ProductFormComponent implements OnInit {
         );
     }
 
-    onFileSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
+    // Color management
+    addColor(): void {
+        const isFirst = this.colorVariants().length === 0;
+        this.colorVariants.update(colors => [...colors, {
+            color_name: '',
+            hex_code: '#808080',
+            is_default: isFirst,
+            in_stock: true,
+            images: [],
+            newImages: []
+        }]);
+    }
 
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                alert('El archivo es muy grande. Máximo 2MB.');
-                return;
-            }
+    removeColor(index: number): void {
+        const colors = this.colorVariants();
+        if (colors.length <= 1) return;
 
-            this.selectedFile = file;
-            const reader = new FileReader();
-            reader.onload = () => {
-                this.imagePreview.set(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+        const wasDefault = colors[index].is_default;
+        this.colorVariants.update(c => c.filter((_, i) => i !== index));
+
+        // If we removed the default, make the first one default
+        if (wasDefault) {
+            this.colorVariants.update(c => {
+                if (c.length > 0) {
+                    c[0].is_default = true;
+                }
+                return [...c];
+            });
         }
     }
 
-    removeImage(): void {
-        this.selectedFile = null;
-        this.imagePreview.set(null);
+    updateColorName(index: number, event: Event): void {
+        const value = (event.target as HTMLInputElement).value;
+        this.colorVariants.update(colors => {
+            colors[index].color_name = value;
+            return [...colors];
+        });
+    }
+
+    updateColorHex(index: number, event: Event): void {
+        const value = (event.target as HTMLInputElement).value;
+        this.colorVariants.update(colors => {
+            colors[index].hex_code = value;
+            return [...colors];
+        });
+    }
+
+    toggleColorStock(index: number): void {
+        this.colorVariants.update(colors => {
+            colors[index].in_stock = !colors[index].in_stock;
+            return [...colors];
+        });
+    }
+
+    setDefaultColor(index: number): void {
+        this.colorVariants.update(colors => {
+            colors.forEach((c, i) => {
+                c.is_default = i === index;
+            });
+            return [...colors];
+        });
+    }
+
+    // Image management
+    triggerImageUpload(colorIndex: number): void {
+        const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"][data-color-index]');
+        const input = Array.from(inputs).find(i => i.dataset['colorIndex'] === String(colorIndex));
+        input?.click();
+    }
+
+    onImagesSelected(colorIndex: number, event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const files = input.files;
+
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files).filter(f => f.size <= 2 * 1024 * 1024);
+
+            if (newFiles.length < files.length) {
+                alert('Algunas imágenes fueron ignoradas por ser mayores a 2MB');
+            }
+
+            this.colorVariants.update(colors => {
+                colors[colorIndex].newImages = [...colors[colorIndex].newImages, ...newFiles];
+                return [...colors];
+            });
+        }
+
+        // Reset input
+        input.value = '';
+    }
+
+    setPrimaryImage(colorIndex: number, imageIndex: number): void {
+        this.colorVariants.update(colors => {
+            colors[colorIndex].images.forEach((img, i) => {
+                img.is_primary = i === imageIndex;
+            });
+            return [...colors];
+        });
+    }
+
+    removeImage(colorIndex: number, imageIndex: number): void {
+        this.colorVariants.update(colors => {
+            colors[colorIndex].images = colors[colorIndex].images.filter((_, i) => i !== imageIndex);
+            return [...colors];
+        });
     }
 
     async onSubmit(): Promise<void> {
-        if (this.productForm.invalid) return;
+        if (this.productForm.invalid || this.colorVariants().length === 0) return;
 
         this.saving.set(true);
 
         try {
-            let imageUrl = this.imagePreview();
-
-            // Upload image if new file selected
-            if (this.selectedFile) {
-                const fileName = `${Date.now()}-${this.selectedFile.name}`;
-                // uploadFile returns the full public URL directly
-                const uploadedUrl = await this.supabase.uploadFile('products', fileName, this.selectedFile);
-                if (uploadedUrl) {
-                    imageUrl = uploadedUrl;
-                }
-            }
+            const client = this.supabase.client;
+            if (!client) throw new Error('Supabase not configured');
 
             const formValue = this.productForm.value;
-            const productData: Partial<DbProduct> = {
+
+            // Prepare product data (without color/image_url as they're now in separate tables)
+            const productData = {
                 name: formValue.name || '',
-                description: formValue.description || undefined,
+                description: formValue.description || null,
                 price: formValue.price || 0,
-                category_id: formValue.category_id || undefined,
+                category_id: formValue.category_id || null,
                 type: formValue.type || 'simple',
-                color: formValue.color || undefined,
-                theme: formValue.theme || undefined,
+                theme: formValue.theme || null,
                 in_stock: formValue.in_stock ?? true,
                 is_active: formValue.is_active ?? true,
-                sizes: this.selectedSizes(),
-                image_url: imageUrl || undefined
+                sizes: this.selectedSizes()
             };
 
-            if (this.isEditMode() && this.productId) {
-                await this.supabase.update<DbProduct>('products', this.productId, productData);
+            let productId = this.productId;
+
+            if (this.isEditMode() && productId) {
+                // Update existing product
+                const { error } = await client
+                    .from('products')
+                    .update(productData)
+                    .eq('id', productId);
+                if (error) throw error;
             } else {
-                await this.supabase.insert<DbProduct>('products', productData);
+                // Create new product
+                const { data, error } = await client
+                    .from('products')
+                    .insert(productData)
+                    .select('id')
+                    .single();
+                if (error) throw error;
+                productId = data.id;
             }
+
+            // Save colors and images
+            await this.saveColorsAndImages(client, productId!);
 
             this.router.navigate(['/admin/products']);
         } catch (error) {
@@ -731,6 +1143,96 @@ export class ProductFormComponent implements OnInit {
             alert('Error al guardar el producto');
         } finally {
             this.saving.set(false);
+        }
+    }
+
+    private async saveColorsAndImages(client: NonNullable<SupabaseService['client']>, productId: string): Promise<void> {
+        if (!client) return;
+
+        const colors = this.colorVariants();
+
+        for (let i = 0; i < colors.length; i++) {
+            const color = colors[i];
+            let colorId = color.id;
+
+            // Create or update color
+            if (colorId && !colorId.startsWith('mock')) {
+                // Update existing
+                const { error } = await client
+                    .from('product_colors')
+                    .update({
+                        color_name: color.color_name || 'Sin nombre',
+                        hex_code: color.hex_code,
+                        display_order: i,
+                        is_default: color.is_default,
+                        in_stock: color.in_stock
+                    })
+                    .eq('id', colorId);
+                if (error) console.error('Error updating color:', error);
+            } else {
+                // Create new
+                const { data, error } = await client
+                    .from('product_colors')
+                    .insert({
+                        product_id: productId,
+                        color_name: color.color_name || 'Sin nombre',
+                        hex_code: color.hex_code,
+                        display_order: i,
+                        is_default: color.is_default,
+                        in_stock: color.in_stock
+                    })
+                    .select('id')
+                    .single();
+                if (error) {
+                    console.error('Error creating color:', error);
+                    continue;
+                }
+                colorId = data.id;
+            }
+
+            // Upload new images for this color
+            for (let j = 0; j < color.newImages.length; j++) {
+                const file = color.newImages[j];
+                const fileName = `${Date.now()}-${j}-${file.name}`;
+                const uploadedUrl = await this.supabase.uploadFile('products', fileName, file);
+
+                if (uploadedUrl) {
+                    const isFirst = color.images.length === 0 && j === 0;
+                    await client
+                        .from('product_images')
+                        .insert({
+                            product_color_id: colorId,
+                            image_url: uploadedUrl,
+                            display_order: color.images.length + j,
+                            is_primary: isFirst
+                        });
+                }
+            }
+
+            // Update existing images order/primary status
+            for (const img of color.images) {
+                if (img.id && img.id !== 'legacy') {
+                    await client
+                        .from('product_images')
+                        .update({
+                            is_primary: img.is_primary,
+                            display_order: img.display_order
+                        })
+                        .eq('id', img.id);
+                }
+            }
+        }
+
+        // Delete colors that were removed (if editing)
+        if (this.isEditMode()) {
+            const existingColorIds = colors.filter(c => c.id).map(c => c.id);
+            if (existingColorIds.length > 0) {
+                await client
+                    .from('product_colors')
+                    .delete()
+                    .eq('product_id', productId)
+                    .not('id', 'in', `(${existingColorIds.join(',')})`);
+            }
         }
     }
 }

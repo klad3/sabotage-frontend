@@ -1,6 +1,24 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Product, FilterState, DbProduct, DbCategory, dbProductToProduct } from '../models/product.model';
+import { Product, FilterState, DbProduct, DbCategory, dbProductToProduct, ProductColor } from '../models/product.model';
 import { SupabaseService } from './supabase.service';
+
+// Helper to create a mock color with images
+function createMockColor(name: string, hexCode: string | null, imageUrl: string, inStock = true): ProductColor {
+    return {
+        id: `mock-color-${name.toLowerCase()}`,
+        name,
+        hexCode,
+        displayOrder: 0,
+        isDefault: true,
+        inStock,
+        images: [{
+            id: `mock-img-${name.toLowerCase()}`,
+            url: imageUrl,
+            displayOrder: 0,
+            isPrimary: true
+        }]
+    };
+}
 
 // Mock products for when Supabase is not configured
 const MOCK_PRODUCTS: Product[] = [
@@ -11,11 +29,11 @@ const MOCK_PRODUCTS: Product[] = [
         price: 49.90,
         category: 'oversize',
         type: 'personalizado',
-        color: 'negro',
         theme: 'urbano',
         sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-        imageUrl: '/img/NEGRO FRONTAL BDU SOLO C.png',
-        inStock: true
+        inStock: true,
+        colors: [createMockColor('Negro', '#000000', '/img/NEGRO FRONTAL BDU SOLO C.png')],
+        imageUrl: '/img/NEGRO FRONTAL BDU SOLO C.png'
     },
     {
         id: 'oversize-002',
@@ -24,11 +42,11 @@ const MOCK_PRODUCTS: Product[] = [
         price: 54.90,
         category: 'oversize',
         type: 'simple',
-        color: 'blanco',
         theme: '',
         sizes: ['S', 'M', 'L', 'XL'],
-        imageUrl: '/img/FUERA DE STOCK.png',
-        inStock: false
+        inStock: false,
+        colors: [createMockColor('Blanco', '#FFFFFF', '/img/FUERA DE STOCK.png', false)],
+        imageUrl: '/img/FUERA DE STOCK.png'
     },
     {
         id: 'oversize-003',
@@ -37,11 +55,11 @@ const MOCK_PRODUCTS: Product[] = [
         price: 52.90,
         category: 'oversize',
         type: 'personalizado',
-        color: 'gris',
         theme: 'skate',
         sizes: ['M', 'L', 'XL', 'XXL'],
-        imageUrl: '/img/NEGRO OVERSIZE SOLO C.png',
-        inStock: true
+        inStock: true,
+        colors: [createMockColor('Gris', '#808080', '/img/NEGRO OVERSIZE SOLO C.png')],
+        imageUrl: '/img/NEGRO OVERSIZE SOLO C.png'
     },
     {
         id: 'oversize-004',
@@ -50,91 +68,12 @@ const MOCK_PRODUCTS: Product[] = [
         price: 56.90,
         category: 'oversize',
         type: 'personalizado',
-        color: 'negro',
         theme: 'videojuegos',
         sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-        imageUrl: '/img/NEGRO SOLO A FRONTAL.png',
-        inStock: true
+        inStock: true,
+        colors: [createMockColor('Negro', '#000000', '/img/NEGRO SOLO A FRONTAL.png')],
+        imageUrl: '/img/NEGRO SOLO A FRONTAL.png'
     },
-    {
-        id: 'oversize-005',
-        name: 'POLO OVERSIZE AZUL ESPIRITUAL',
-        description: 'Diseño místico y espiritual. Perfecto para quienes buscan algo diferente y único.',
-        price: 53.90,
-        category: 'oversize',
-        type: 'simple',
-        color: 'azul',
-        theme: '',
-        sizes: ['XS', 'S', 'M', 'L', 'XL'],
-        imageUrl: '/img/NEGRO OVERSIZE SOLO C.png',
-        inStock: true
-    },
-    {
-        id: 'oversize-006',
-        name: 'POLO OVERSIZE ROJO MÚSICA',
-        description: 'Para los amantes de la música. Estampado de bandas legendarias con estilo urbano.',
-        price: 55.90,
-        category: 'oversize',
-        type: 'simple',
-        color: 'rojo',
-        theme: '',
-        sizes: ['S', 'M', 'L', 'XL'],
-        imageUrl: '/img/ROJO OSCURO ESPALDAS 3-4 SOLO A.png',
-        inStock: true
-    },
-    {
-        id: 'oversize-007',
-        name: 'POLO OVERSIZE VERDE ANIME',
-        description: 'Diseño exclusivo de anime japonés. Calidad premium y estilo inigualable.',
-        price: 57.90,
-        category: 'oversize',
-        type: 'personalizado',
-        color: 'verde',
-        theme: 'anime',
-        sizes: ['M', 'L', 'XL', 'XXL'],
-        imageUrl: '/img/NEGRO FRONTAL BDU SOLO C.png',
-        inStock: true
-    },
-    {
-        id: 'oversize-008',
-        name: 'POLO OVERSIZE BLANCO URBANO',
-        description: 'Minimalista y elegante. Perfecto para el día a día con estilo urbano único.',
-        price: 48.90,
-        category: 'oversize',
-        type: 'simple',
-        color: 'blanco',
-        theme: '',
-        sizes: ['XS', 'S', 'M', 'L', 'XL'],
-        imageUrl: '/img/BLANCO MOCKUP ENJAMBRE 1.png',
-        inStock: true
-    },
-    {
-        id: 'oversize-009',
-        name: 'POLO OVERSIZE NEGRO ESPIRITUAL',
-        description: 'Diseño místico en negro. Símbolos ancestrales con estilo moderno.',
-        price: 59.90,
-        category: 'oversize',
-        type: 'simple',
-        color: 'negro',
-        theme: '',
-        sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-        imageUrl: '/img/NEGRO SOLO A FRONTAL.png',
-        inStock: true
-    },
-    {
-        id: 'oversize-010',
-        name: 'POLO OVERSIZE GRIS GAMING',
-        description: 'Edición especial gaming. Para los que viven y respiran videojuegos.',
-        price: 58.90,
-        category: 'oversize',
-        type: 'simple',
-        color: 'gris',
-        theme: '',
-        sizes: ['M', 'L', 'XL'],
-        imageUrl: '/img/NEGRO OVERSIZE SOLO C.png',
-        inStock: true
-    },
-    // Classic polos
     {
         id: 'clasico-001',
         name: 'POLO CLASICO NEGRO',
@@ -142,11 +81,11 @@ const MOCK_PRODUCTS: Product[] = [
         price: 49.90,
         category: 'clasico',
         type: 'personalizado',
-        color: 'negro',
         theme: 'urbano',
         sizes: ['S', 'M', 'L', 'XL'],
-        imageUrl: '/img/NEGRO SOLO A FRONTAL.png',
-        inStock: true
+        inStock: true,
+        colors: [createMockColor('Negro', '#000000', '/img/NEGRO SOLO A FRONTAL.png')],
+        imageUrl: '/img/NEGRO SOLO A FRONTAL.png'
     },
     {
         id: 'clasico-002',
@@ -155,11 +94,11 @@ const MOCK_PRODUCTS: Product[] = [
         price: 49.90,
         category: 'clasico',
         type: 'simple',
-        color: 'rojo',
         theme: '',
         sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-        imageUrl: '/img/ROJO OSCURO ESPALDAS 3-4 SOLO A.png',
-        inStock: true
+        inStock: true,
+        colors: [createMockColor('Rojo', '#800000', '/img/ROJO OSCURO ESPALDAS 3-4 SOLO A.png')],
+        imageUrl: '/img/ROJO OSCURO ESPALDAS 3-4 SOLO A.png'
     }
 ];
 
@@ -207,14 +146,28 @@ export class ProductService {
                 // Create a map for quick category lookup
                 const categoryMap = new Map(categories.map(c => [c.id, c]));
 
-                // Load products with category info
-                const dbProducts = await this.supabase.getAll<DbProduct>('products', {
-                    filters: [{ column: 'is_active', operator: 'eq', value: true }],
-                    orderBy: { column: 'created_at', ascending: false }
-                });
+                // Load products with colors and images using nested select
+                const client = this.supabase.client;
+                if (!client) {
+                    throw new Error('Supabase client not initialized');
+                }
+
+                const { data: dbProducts, error } = await client
+                    .from('products')
+                    .select(`
+                        *,
+                        colors:product_colors(
+                            *,
+                            images:product_images(*)
+                        )
+                    `)
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
 
                 // Convert DB products to frontend Model
-                const products = dbProducts.map(dbProduct => {
+                const products = (dbProducts || []).map((dbProduct: DbProduct) => {
                     const category = dbProduct.category_id ? categoryMap.get(dbProduct.category_id) : null;
                     return dbProductToProduct(dbProduct, category?.slug);
                 });
@@ -273,9 +226,15 @@ export class ProductService {
                 return false;
             }
 
-            // Color filter
-            if (filters.colors.length > 0 && !filters.colors.includes(product.color)) {
-                return false;
+            // Color filter - now checks against product.colors array
+            if (filters.colors.length > 0) {
+                const productColorNames = product.colors.map(c => c.name.toLowerCase());
+                const hasMatchingColor = filters.colors.some(fc =>
+                    productColorNames.includes(fc.toLowerCase())
+                );
+                if (!hasMatchingColor) {
+                    return false;
+                }
             }
 
             // Theme filter (only for personalized products)
@@ -322,11 +281,27 @@ export class ProductService {
             const nameMatch = product.name.toLowerCase().includes(searchTerm);
             const descMatch = product.description.toLowerCase().includes(searchTerm);
             const themeMatch = product.theme?.toLowerCase().includes(searchTerm);
-            const colorMatch = product.color.toLowerCase().includes(searchTerm);
+            // Search in all color names
+            const colorMatch = product.colors.some(c =>
+                c.name.toLowerCase().includes(searchTerm)
+            );
             const categoryMatch = product.category.toLowerCase().includes(searchTerm);
 
             return nameMatch || descMatch || themeMatch || colorMatch || categoryMatch;
         });
+    }
+
+    /**
+     * Get all unique color names from products (for filters)
+     */
+    getAllColors(): string[] {
+        const colorSet = new Set<string>();
+        this._products().forEach(product => {
+            product.colors.forEach(color => {
+                colorSet.add(color.name);
+            });
+        });
+        return Array.from(colorSet).sort();
     }
 
     /**

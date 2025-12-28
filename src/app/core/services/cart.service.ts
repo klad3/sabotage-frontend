@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HydratedCartItem, DbProduct, DISCOUNT_CODES } from '../models/product.model';
+import { HydratedCartItem, DbProduct, DbProductColor, DISCOUNT_CODES } from '../models/product.model';
 import { SupabaseService } from './supabase.service';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -100,18 +100,23 @@ export class CartService {
                 return;
             }
 
-            // Load items with product data
+            // Load items with product and color data
             const { data: items, error } = await this.db
                 .from('cart_items')
                 .select(`
                     id,
                     cart_id,
                     product_id,
+                    product_color_id,
                     size,
                     quantity,
                     created_at,
                     updated_at,
-                    product:products(*)
+                    product:products(*),
+                    product_color:product_colors(
+                        *,
+                        images:product_images(*)
+                    )
                 `)
                 .eq('cart_id', cartId);
 
@@ -128,11 +133,13 @@ export class CartService {
                     id: item.id,
                     cart_id: item.cart_id,
                     product_id: item.product_id,
+                    product_color_id: item.product_color_id || null,
                     size: item.size,
                     quantity: item.quantity,
                     created_at: item.created_at,
                     updated_at: item.updated_at,
-                    product: item.product as unknown as DbProduct
+                    product: item.product as unknown as DbProduct,
+                    product_color: item.product_color as unknown as DbProductColor | undefined
                 }));
             this._items.set(validItems);
         } finally {
@@ -142,16 +149,22 @@ export class CartService {
 
     /**
      * Add an item to the cart
+     * @param productId - Product ID
+     * @param size - Selected size
+     * @param quantity - Quantity to add (default 1)
+     * @param colorId - Optional color variant ID
      */
-    async addItem(productId: string, size: string, quantity: number = 1): Promise<boolean> {
+    async addItem(productId: string, size: string, quantity: number = 1, colorId?: string): Promise<boolean> {
         this._isLoading.set(true);
 
         try {
             const cartId = await this.ensureCart();
 
-            // Check if item already exists
+            // Check if item already exists (same product, size, and color)
             const existingItem = this._items().find(
-                i => i.product_id === productId && i.size === size
+                i => i.product_id === productId &&
+                    i.size === size &&
+                    i.product_color_id === (colorId || null)
             );
 
             if (existingItem) {
@@ -166,6 +179,7 @@ export class CartService {
                 .insert({
                     cart_id: cartId,
                     product_id: productId,
+                    product_color_id: colorId || null,
                     size,
                     quantity: Math.min(quantity, 10)
                 });

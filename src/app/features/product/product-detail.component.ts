@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { AosService } from '../../core/services/aos.service';
-import { Product } from '../../core/models/product.model';
+import { Product, ProductColor, ProductImage } from '../../core/models/product.model';
 import { ProductCardComponent } from '../catalog/components/product-card/product-card.component';
 
 @Component({
@@ -36,17 +36,41 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                 <!-- Product Content -->
                 <div class="max-w-7xl mx-auto px-4 py-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                        <!-- Product Image -->
+                        <!-- Product Images Gallery -->
                         <div class="relative" data-aos="fade-right">
-                            <div class="aspect-square rounded-2xl overflow-hidden bg-sabotage-gray">
+                            <!-- Main Image -->
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-sabotage-gray mb-4">
                                 <img
-                                    [src]="product()!.imageUrl"
+                                    [src]="currentMainImage()"
                                     [alt]="product()!.name"
-                                    class="w-full h-full object-cover"
+                                    class="w-full h-full object-cover transition-opacity duration-300"
                                 />
                             </div>
 
-                            @if (!product()!.inStock) {
+                            <!-- Thumbnail Gallery -->
+                            @if (currentImages().length > 1) {
+                                <div class="flex gap-2 overflow-x-auto pb-2">
+                                    @for (image of currentImages(); track image.id; let i = $index) {
+                                        <button
+                                            type="button"
+                                            (click)="selectImage(i)"
+                                            class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200"
+                                            [class.border-sabotage-accent]="selectedImageIndex() === i"
+                                            [class.border-sabotage-border]="selectedImageIndex() !== i"
+                                            [class.opacity-60]="selectedImageIndex() !== i"
+                                            [attr.aria-label]="'Ver imagen ' + (i + 1)"
+                                        >
+                                            <img
+                                                [src]="image.url"
+                                                [alt]="product()!.name + ' - imagen ' + (i + 1)"
+                                                class="w-full h-full object-cover"
+                                            />
+                                        </button>
+                                    }
+                                </div>
+                            }
+
+                            @if (!selectedColorInStock()) {
                                 <div class="absolute top-4 left-4 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm">
                                     AGOTADO
                                 </div>
@@ -72,6 +96,37 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
 
                             <!-- Options -->
                             <div class="my-6 md:my-8">
+                                <!-- Color Selector -->
+                                @if (product()!.colors.length > 1) {
+                                    <div class="mb-6">
+                                        <label class="block font-bold mb-3 tracking-wide text-sm">
+                                            COLOR: <span class="font-normal text-sabotage-muted">{{ selectedColor()?.name }}</span>
+                                        </label>
+                                        <div class="flex flex-wrap gap-3">
+                                            @for (color of product()!.colors; track color.id) {
+                                                <button
+                                                    type="button"
+                                                    (click)="selectColor(color)"
+                                                    class="relative w-10 h-10 rounded-full border-2 transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-sabotage-accent focus:ring-offset-2 focus:ring-offset-sabotage-dark"
+                                                    [class.border-sabotage-light]="selectedColor()?.id === color.id"
+                                                    [class.border-sabotage-border]="selectedColor()?.id !== color.id"
+                                                    [class.ring-2]="selectedColor()?.id === color.id"
+                                                    [class.ring-sabotage-accent]="selectedColor()?.id === color.id"
+                                                    [style.background-color]="color.hexCode || '#808080'"
+                                                    [attr.aria-label]="'Seleccionar color ' + color.name"
+                                                    [attr.title]="color.name + (color.inStock ? '' : ' (Agotado)')"
+                                                >
+                                                    @if (!color.inStock) {
+                                                        <span class="absolute inset-0 flex items-center justify-center">
+                                                            <span class="w-full h-0.5 bg-red-500 rotate-45 absolute"></span>
+                                                        </span>
+                                                    }
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
                                 <!-- Size Selector -->
                                 <div class="mb-6">
                                     <label class="block font-bold mb-3 tracking-wide text-sm">TALLA:</label>
@@ -131,17 +186,17 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                             <button
                                 type="button"
                                 (click)="addToCart()"
-                                [disabled]="!product()!.inStock || isAdding()"
+                                [disabled]="!canAddToCart() || isAdding()"
                                 class="w-full py-4 md:py-5 font-extrabold text-lg tracking-[2px] rounded mt-auto transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                                 [class]="addedToCart() 
                                     ? 'bg-[#4CAF50] text-white' 
-                                    : product()!.inStock 
+                                    : canAddToCart() 
                                         ? 'bg-sabotage-light text-sabotage-black hover:opacity-90 hover:scale-[1.02]' 
                                         : 'bg-sabotage-gray text-sabotage-muted'"
                             >
                                 @if (addedToCart()) {
                                     ✓ AGREGADO AL CARRITO
-                                } @else if (!product()!.inStock) {
+                                } @else if (!selectedColorInStock()) {
                                     AGOTADO
                                 } @else {
                                     AGREGAR AL CARRITO
@@ -226,6 +281,45 @@ export class ProductDetailComponent implements OnInit {
     readonly isAdding = signal(false);
     readonly addedToCart = signal(false);
 
+    // Color and image selection
+    readonly selectedColor = signal<ProductColor | null>(null);
+    readonly selectedImageIndex = signal(0);
+
+    // Computed: current color's images
+    readonly currentImages = computed((): ProductImage[] => {
+        const color = this.selectedColor();
+        if (!color?.images?.length) {
+            // Fallback to legacy imageUrl if no color images
+            const p = this.product();
+            if (p?.imageUrl) {
+                return [{ id: 'legacy', url: p.imageUrl, displayOrder: 0, isPrimary: true }];
+            }
+            return [];
+        }
+        return color.images;
+    });
+
+    // Computed: current main image URL
+    readonly currentMainImage = computed((): string => {
+        const images = this.currentImages();
+        const index = this.selectedImageIndex();
+        return images[index]?.url || images[0]?.url || '';
+    });
+
+    // Computed: is selected color in stock
+    readonly selectedColorInStock = computed((): boolean => {
+        const color = this.selectedColor();
+        if (!color) {
+            return this.product()?.inStock ?? false;
+        }
+        return color.inStock;
+    });
+
+    // Computed: can add to cart
+    readonly canAddToCart = computed((): boolean => {
+        return this.selectedColorInStock() && !!this.selectedSize();
+    });
+
     readonly relatedProducts = computed(() => {
         const current = this.product();
         if (!current) return [];
@@ -255,14 +349,29 @@ export class ProductDetailComponent implements OnInit {
             const foundProduct = this.productService.getProductBySlug(slug);
             this.product.set(foundProduct || null);
 
-            // Auto-select first size
-            if (foundProduct?.sizes?.length) {
-                this.selectedSize.set(foundProduct.sizes[0]);
+            // Auto-select default color and first size
+            if (foundProduct) {
+                const defaultColor = foundProduct.defaultColor || foundProduct.colors[0];
+                if (defaultColor) {
+                    this.selectedColor.set(defaultColor);
+                }
+                if (foundProduct.sizes?.length) {
+                    this.selectedSize.set(foundProduct.sizes[0]);
+                }
             }
         }
 
         this.loading.set(false);
         await this.aos.init();
+    }
+
+    selectColor(color: ProductColor): void {
+        this.selectedColor.set(color);
+        this.selectedImageIndex.set(0); // Reset to first image when changing color
+    }
+
+    selectImage(index: number): void {
+        this.selectedImageIndex.set(index);
     }
 
     selectSize(size: string): void {
@@ -283,12 +392,19 @@ export class ProductDetailComponent implements OnInit {
 
     async addToCart(): Promise<void> {
         const p = this.product();
+        const color = this.selectedColor();
         if (!p || !this.selectedSize()) return;
 
         this.isAdding.set(true);
 
         try {
-            const success = await this.cartService.addItem(p.id, this.selectedSize(), this.quantity());
+            // Pass color ID to cart service (will be updated in cart service later)
+            const success = await this.cartService.addItem(
+                p.id,
+                this.selectedSize(),
+                this.quantity(),
+                color?.id // New parameter for color
+            );
 
             if (success) {
                 this.addedToCart.set(true);
