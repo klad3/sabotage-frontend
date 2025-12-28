@@ -142,9 +142,10 @@ export class CartSummaryComponent {
             id: item.product_id,
             name: item.product.name,
             size: item.size,
+            color: item.product_color?.color_name || undefined,
             quantity: item.quantity,
             price: item.product.price,
-            image: item.product.image_url || undefined
+            image: item.product_color?.images?.[0]?.image_url || item.product.image_url || undefined
           })),
           subtotal: cartData.subtotal,
           shipping: cartData.shipping,
@@ -166,6 +167,9 @@ export class CartSummaryComponent {
       cartData.items.forEach((item, index) => {
         message += `\n${index + 1}. ${item.product.name}\n`;
         message += `   • Talla: ${item.size}\n`;
+        if (item.product_color?.color_name) {
+          message += `   • Color: ${item.product_color.color_name}\n`;
+        }
         message += `   • Cantidad: ${item.quantity}\n`;
         message += `   • Precio: S/ ${(item.product.price * item.quantity).toFixed(2)}\n`;
       });
@@ -222,6 +226,9 @@ export class CartSummaryComponent {
     cartData.items.forEach((item, index) => {
       message += `\n${index + 1}. ${item.product.name}\n`;
       message += `   • Talla: ${item.size}\n`;
+      if (item.product_color?.color_name) {
+        message += `   • Color: ${item.product_color.color_name}\n`;
+      }
       message += `   • Cantidad: ${item.quantity}\n`;
       message += `   • Precio: S/ ${(item.product.price * item.quantity).toFixed(2)}\n`;
     });

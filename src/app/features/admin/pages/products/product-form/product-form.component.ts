@@ -531,6 +531,11 @@ interface ImageFormData {
             background: rgba(255, 255, 255, 0.05) !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             border-radius: 8px !important;
+            color: #fff !important;
+        }
+
+        .color-name-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .color-picker {

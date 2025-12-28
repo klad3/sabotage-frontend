@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, computed } from '@angular/core';
 import { HydratedCartItem } from '../../../../core/models/product.model';
 
 @Component({
@@ -9,7 +9,7 @@ import { HydratedCartItem } from '../../../../core/models/product.model';
       <!-- Product Image -->
       <div class="w-full md:w-[120px] h-[200px] md:h-[120px] flex-shrink-0 bg-sabotage-gray rounded overflow-hidden">
         <img
-          [src]="item().product.image_url"
+          [src]="itemImage()"
           [alt]="item().product.name"
           class="w-full h-full object-cover"
           loading="lazy"
@@ -23,7 +23,11 @@ import { HydratedCartItem } from '../../../../core/models/product.model';
             {{ item().product.name }}
           </h3>
           <p class="text-sm text-sabotage-muted">
-            Talla: {{ item().size }} | Tipo: {{ item().product.type === 'personalizado' ? 'Personalizado' : 'Sin personalizar' }}
+            Talla: {{ item().size }} 
+            @if (colorName()) {
+              | Color: {{ colorName() }}
+            }
+            | Tipo: {{ item().product.type === 'personalizado' ? 'Personalizado' : 'Sin personalizar' }}
           </p>
         </div>
 
@@ -95,5 +99,24 @@ export class CartItemComponent {
   readonly increase = output<void>();
   readonly decrease = output<void>();
   readonly remove = output<void>();
-}
 
+  // Get color name from the selected color
+  readonly colorName = computed(() => {
+    const color = this.item().product_color;
+    return color?.color_name || null;
+  });
+
+  // Get image from selected color, fallback to product image
+  readonly itemImage = computed(() => {
+    const color = this.item().product_color;
+
+    // Try to get primary image from selected color
+    if (color?.images?.length) {
+      const primaryImage = color.images.find(img => img.is_primary);
+      return primaryImage?.image_url || color.images[0]?.image_url;
+    }
+
+    // Fallback to legacy product image
+    return this.item().product.image_url || '';
+  });
+}
