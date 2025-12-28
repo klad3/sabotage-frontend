@@ -122,7 +122,7 @@ import { DbReview } from '../../core/models/product.model';
                                     required
                                     maxlength="500"
                                     rows="4"
-                                    class="px-5 py-4 bg-sabotage-dark border-2 border-sabotage-border text-sabotage-light text-base resize-y min-h-[100px] max-h-[200px] leading-relaxed transition-all duration-300 focus:outline-none focus:border-sabotage-light"
+                                    class="px-5 py-4 bg-sabotage-dark border-2 border-sabotage-border text-sabotage-light text-base resize-y min-h-[100px] max-h-[200px] leading-relaxed transition-colors duration-300 focus:outline-none focus:border-sabotage-light"
                                 ></textarea>
                             </div>
 
