@@ -34,7 +34,8 @@ import { ChangeDetectionStrategy } from '@angular/core';
                             type="email" 
                             id="email" 
                             formControlName="email"
-                            placeholder="admin@sabotage.pe"
+                            placeholder="ejemplo@correo.com"
+                            autocomplete="email"
                             [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
                         >
                         @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
@@ -52,6 +53,7 @@ import { ChangeDetectionStrategy } from '@angular/core';
                             id="password" 
                             formControlName="password"
                             placeholder="••••••••"
+                            autocomplete="current-password"
                             [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
                         >
                         @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
