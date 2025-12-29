@@ -99,9 +99,16 @@ import { DbOrder, OrderStatus } from '../../../../../core/models/product.model';
                             <div class="items-list">
                                 @for (item of selectedOrder()?.items || []; track item.id) {
                                     <div class="item-row">
-                                        <span class="item-name">{{ item.name }} ({{ item.size }})</span>
-                                        <span class="item-qty">x{{ item.quantity }}</span>
-                                        <span class="item-price">S/ {{ (item.price * item.quantity).toFixed(2) }}</span>
+                                        <div class="item-details">
+                                            <span class="item-name">{{ item.name }}</span>
+                                            <span class="item-variant">
+                                                {{ item.color ? item.color + ' | ' : '' }}{{ item.size }}
+                                            </span>
+                                        </div>
+                                        <div class="item-totals">
+                                            <span class="item-qty">x{{ item.quantity }}</span>
+                                            <span class="item-price">S/ {{ (item.price * item.quantity).toFixed(2) }}</span>
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -468,13 +475,32 @@ import { DbOrder, OrderStatus } from '../../../../../core/models/product.model';
             padding: 8px 0;
         }
 
-        .item-name {
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
             flex: 1;
+        }
+
+        .item-name {
             color: #fff;
+            font-weight: 500;
+        }
+
+        .item-variant {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .item-totals {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .item-qty {
             color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
         }
 
         .item-price {

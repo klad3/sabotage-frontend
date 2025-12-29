@@ -206,10 +206,11 @@ type TabType = 'pending' | 'approved' | 'rejected' | 'all';
             font-size: 1.75rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
+            color: #fff;
         }
 
         .subtitle {
-            color: #888;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .btn-add {

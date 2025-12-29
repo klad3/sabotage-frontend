@@ -9,7 +9,7 @@ import { SidebarService } from '../../../../core/services/sidebar.service';
     selector: 'app-admin-layout',
     imports: [RouterOutlet, AdminSidebarComponent, AdminHeaderComponent, ToastContainerComponent],
     template: `
-        <div class="admin-layout">
+        <div class="admin-layout dark-section">
             <app-admin-sidebar />
             <div class="admin-main" [class.collapsed]="sidebarService.isCollapsed()">
                 <app-admin-header />

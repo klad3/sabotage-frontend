@@ -265,6 +265,7 @@ export interface OrderItem {
     id: string;
     name: string;
     size: string;
+    color?: string;
     quantity: number;
     price: number;
     image?: string;
