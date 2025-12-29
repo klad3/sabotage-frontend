@@ -124,8 +124,8 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
                 [attr.aria-label]="'Ir a slide ' + (i + 1)"
                 class="h-2 md:h-3 rounded-full transition-all duration-300 cursor-pointer"
                 [class]="currentSlide() === i
-                  ? 'w-5 md:w-[30px] bg-sabotage-light'
-                  : 'w-2 md:w-3 bg-sabotage-light/50 hover:bg-sabotage-light/70'"
+                  ? 'w-5 md:w-[30px] bg-white'
+                  : 'w-2 md:w-3 bg-white/50 hover:bg-white/70'"
               ></button>
             }
           </div>

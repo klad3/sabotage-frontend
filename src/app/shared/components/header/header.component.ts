@@ -199,7 +199,7 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
         <nav class="flex items-center gap-10 font-space font-bold text-[1.3rem]">
           <a
             routerLink="/"
-            routerLinkActive="text-white"
+            routerLinkActive="text-white active-link"
             [routerLinkActiveOptions]="{ exact: true }"
             class="nav-link-underline text-sabotage-light hover:opacity-80 transition-opacity"
           >
@@ -208,7 +208,7 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
 
           <a
             routerLink="/nosotros"
-            routerLinkActive="text-white"
+            routerLinkActive="text-white active-link"
             class="nav-link-underline text-sabotage-light hover:opacity-80 transition-opacity"
           >
             QUIENES SOMOS

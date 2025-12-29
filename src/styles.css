@@ -199,7 +199,8 @@
     transition: width 0.4s ease;
   }
 
-  .nav-link-underline:hover::after {
+  .nav-link-underline:hover::after,
+  .nav-link-underline.active-link::after {
     width: 100%;
   }
 }
