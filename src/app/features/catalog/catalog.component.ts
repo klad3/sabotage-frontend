@@ -5,6 +5,7 @@ import { ProductGridComponent } from './components/product-grid/product-grid.com
 import { ProductService } from '../../core/services/product.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { AosService } from '../../core/services/aos.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product, FilterState, DbCategory } from '../../core/models/product.model';
 
 @Component({
@@ -53,6 +54,7 @@ export class CatalogComponent {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
   private readonly aos = inject(AosService);
+  private readonly seo = inject(SeoService);
 
   // Inputs for different catalog types (fallback values)
   readonly category = input<string>('oversize');
@@ -92,21 +94,36 @@ export class CatalogComponent {
     try {
       // First, try to find category in already-loaded ProductService cache
       const cachedCategories = this.productService.categories();
-      const cachedCategory = cachedCategories.find(c => c.slug === slug);
+      let foundCategory = cachedCategories.find(c => c.slug === slug);
 
-      if (cachedCategory) {
-        // Use cached category - no API call needed
-        this.categoryData.set(cachedCategory);
-        return;
+      if (!foundCategory) {
+        // Not in cache - fetch from API
+        const categories = await this.supabase.getAll<DbCategory>('categories', {
+          filters: [{ column: 'slug', operator: 'eq', value: slug }]
+        });
+        if (categories.length > 0) {
+          foundCategory = categories[0];
+        }
       }
 
-      // Not in cache - fetch from API (happens when entering directly to category page)
-      const categories = await this.supabase.getAll<DbCategory>('categories', {
-        filters: [{ column: 'slug', operator: 'eq', value: slug }]
-      });
+      if (foundCategory) {
+        this.categoryData.set(foundCategory);
 
-      if (categories.length > 0) {
-        this.categoryData.set(categories[0]);
+        // Update SEO
+        this.seo.updateTags({
+          title: foundCategory.name.toUpperCase(),
+          description: foundCategory.description || this.subtitle(),
+          url: `https://sabotage.pe/${slug}`,
+          type: 'website'
+        });
+      } else {
+        // Fallback SEO if category db data not found but routing works (e.g. from input title)
+        this.seo.updateTags({
+          title: this.title(),
+          description: this.subtitle(),
+          url: `https://sabotage.pe/${slug}`,
+          type: 'website'
+        });
       }
     } catch (error) {
       console.warn('Could not load category data:', error);

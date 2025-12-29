@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { AosService } from '../../core/services/aos.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Product, ProductColor, ProductImage } from '../../core/models/product.model';
 import { ProductCardComponent } from '../catalog/components/product-card/product-card.component';
 
@@ -275,6 +276,7 @@ export class ProductDetailComponent implements OnInit {
     private readonly productService = inject(ProductService);
     private readonly cartService = inject(CartService);
     private readonly aos = inject(AosService);
+    private readonly seo = inject(SeoService);
 
     readonly product = signal<Product | null>(null);
     readonly loading = signal(true);
@@ -360,6 +362,15 @@ export class ProductDetailComponent implements OnInit {
                 if (foundProduct.sizes?.length) {
                     this.selectedSize.set(foundProduct.sizes[0]);
                 }
+
+                // Update SEO
+                this.seo.updateTags({
+                    title: foundProduct.name.toUpperCase(),
+                    description: foundProduct.description,
+                    image: foundProduct.imageUrl,
+                    url: `https://sabotage.pe/producto/${slug}`,
+                    type: 'product'
+                });
             }
         }
 
