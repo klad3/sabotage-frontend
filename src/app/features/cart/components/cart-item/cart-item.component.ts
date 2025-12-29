@@ -1,27 +1,35 @@
-import { Component, input, output, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HydratedCartItem } from '../../../../core/models/product.model';
+import { ProductService } from '../../../../core/services/product.service';
 
 @Component({
   selector: 'app-cart-item',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
     <article class="flex flex-col md:flex-row gap-5 bg-sabotage-dark border-2 border-sabotage-border p-5 rounded-lg transition-all duration-300 animate-[slideIn_0.4s_ease] hover:border-[#555]">
       <!-- Product Image -->
-      <div class="w-full md:w-[120px] h-[200px] md:h-[120px] flex-shrink-0 bg-sabotage-gray rounded overflow-hidden">
+      <a 
+        [routerLink]="['/producto', productService.generateSlug(item().product.name)]" 
+        class="w-full md:w-[120px] h-[200px] md:h-[120px] flex-shrink-0 bg-sabotage-gray rounded overflow-hidden cursor-pointer"
+      >
         <img
           [src]="itemImage()"
           [alt]="item().product.name"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
           loading="lazy"
         />
-      </div>
+      </a>
 
       <!-- Product Info -->
       <div class="flex-1 flex flex-col justify-between">
         <div>
-          <h3 class="text-lg md:text-xl font-bold mb-2 text-sabotage-light">
-            {{ item().product.name }}
-          </h3>
+          <a [routerLink]="['/producto', productService.generateSlug(item().product.name)]" class="hover:underline cursor-pointer">
+            <h3 class="text-lg md:text-xl font-bold mb-2 text-sabotage-light uppercase transition-colors">
+              {{ item().product.name }}
+            </h3>
+          </a>
           <p class="text-sm text-sabotage-muted">
             Talla: {{ item().size }} 
             @if (colorName()) {
@@ -95,6 +103,7 @@ import { HydratedCartItem } from '../../../../core/models/product.model';
 })
 export class CartItemComponent {
   readonly item = input.required<HydratedCartItem>();
+  readonly productService = inject(ProductService);
 
   readonly increase = output<void>();
   readonly decrease = output<void>();

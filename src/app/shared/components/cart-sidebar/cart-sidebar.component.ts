@@ -2,6 +2,7 @@ import { Component, inject, computed } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
+import { ProductService } from '../../../core/services/product.service';
 
 @Component({
   selector: 'app-cart-sidebar',
@@ -76,7 +77,12 @@ import { CartService } from '../../../core/services/cart.service';
             @for (item of cartService.items(); track item.id) {
               <div class="flex gap-4 group">
                 <!-- Image -->
-                <div class="relative w-20 h-24 bg-white/5 [.light-mode_&]:bg-gray-100 rounded overflow-hidden flex-shrink-0 border border-white/10 [.light-mode_&]:border-gray-200">
+                <!-- Image -->
+                <a 
+                  [routerLink]="['/producto', productService.generateSlug(item.product.name)]"
+                  (click)="cartService.closeSidebar()"
+                  class="relative w-20 h-24 bg-white/5 [.light-mode_&]:bg-gray-100 rounded overflow-hidden flex-shrink-0 border border-white/10 [.light-mode_&]:border-gray-200 cursor-pointer"
+                >
                   @if (item.product_color?.images?.[0]?.image_url || item.product.image_url) {
                     <img 
                       [ngSrc]="item.product_color?.images?.[0]?.image_url || item.product.image_url || ''" 
@@ -93,15 +99,19 @@ import { CartService } from '../../../core/services/cart.service';
                       >
                     </div>
                   }
-                </div>
+                </a>
 
                 <!-- Info -->
                 <div class="flex-1 flex flex-col justify-between">
                   <div class="flex justify-between items-start gap-2">
                     <div>
-                      <h3 class="font-bold text-sm uppercase leading-tight group-hover:text-sabotage-accent transition-colors text-white [.light-mode_&]:text-black">
+                      <a 
+                        [routerLink]="['/producto', productService.generateSlug(item.product.name)]"
+                        (click)="cartService.closeSidebar()"
+                        class="font-bold text-sm uppercase leading-tight group-hover:text-sabotage-accent transition-colors text-white [.light-mode_&]:text-black hover:underline cursor-pointer block"
+                      >
                         {{ item.product.name }}
-                      </h3>
+                      </a>
                       <p class="text-xs text-gray-400 [.light-mode_&]:text-gray-500 mt-1">
                         {{ item.size }} / {{ item.product_color?.color_name || 'Estándar' }}
                       </p>
@@ -200,4 +210,5 @@ import { CartService } from '../../../core/services/cart.service';
 })
 export class CartSidebarComponent {
   readonly cartService = inject(CartService);
+  readonly productService = inject(ProductService);
 }

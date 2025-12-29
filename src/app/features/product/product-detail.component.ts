@@ -25,13 +25,13 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                 <!-- Breadcrumb -->
                 <div class="max-w-7xl mx-auto px-4 py-4">
                     <nav class="flex items-center gap-2 text-sm text-sabotage-muted">
-                        <a routerLink="/" class="hover:text-sabotage-light transition-colors">Inicio</a>
+                        <a routerLink="/" class="hover:text-sabotage-light transition-colors">INICIO</a>
                         <span>/</span>
                         <a [routerLink]="'/' + productResource.value()!.category" class="hover:text-sabotage-light transition-colors uppercase">
                             {{ categoryName() }}
                         </a>
                         <span>/</span>
-                        <span class="text-sabotage-light font-semibold">{{ productResource.value()!.name }}</span>
+                        <span class="text-sabotage-light font-semibold uppercase">{{ productResource.value()!.name }}</span>
                     </nav>
                 </div>
 
@@ -87,7 +87,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                         <!-- Product Info -->
                         <div class="flex flex-col flex-1">
                             <!-- Name -->
-                            <h2 class="text-2xl md:text-3xl font-extrabold mb-4 tracking-wide">
+                            <h2 class="text-2xl md:text-3xl font-extrabold mb-4 tracking-wide uppercase">
                                 {{ productResource.value()!.name }}
                             </h2>
 
