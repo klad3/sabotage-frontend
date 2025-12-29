@@ -1,9 +1,11 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { Product } from '../../../../core/models/product.model';
 
 @Component({
   selector: 'app-product-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgOptimizedImage],
   template: `
     <article
       (click)="cardClick.emit(product())"
@@ -13,13 +15,13 @@ import { Product } from '../../../../core/models/product.model';
       class="h-full bg-sabotage-dark border-2 border-sabotage-border p-4 md:p-5 rounded-lg cursor-pointer transition-all duration-400 relative overflow-hidden shimmer hover-lift group flex flex-col"
       [attr.aria-label]="'Ver detalles de ' + product().name"
     >
-      <!-- Product Image -->
-      <div class="bg-sabotage-gray mb-4 overflow-hidden rounded aspect-[3/4]">
+      <!-- Product Image: Using fill mode (container has relative + aspect ratio) -->
+      <div class="bg-sabotage-gray mb-4 overflow-hidden rounded aspect-[3/4] relative">
         <img
-          [src]="product().imageUrl"
+          [ngSrc]="product().imageUrl"
           [alt]="product().name"
-          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          loading="lazy"
+          fill
+          class="object-cover transition-transform duration-500 group-hover:scale-110"
         />
       </div>
 

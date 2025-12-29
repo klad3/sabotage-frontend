@@ -89,8 +89,9 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
           </button>
 
           <!-- Cart Icon -->
-          <a
-            routerLink="/carrito"
+          <button
+            type="button"
+            (click)="toggleCartSidebar()"
             class="text-sabotage-light p-2 relative"
             aria-label="Carrito de compras"
           >
@@ -104,7 +105,7 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
                 {{ cartItemCount() }}
               </span>
             }
-          </a>
+          </button>
         </div>
       </div>
 
@@ -296,11 +297,11 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
           </button>
 
           <!-- Cart -->
-          <a
-            routerLink="/carrito"
-            routerLinkActive="text-white"
-            class="text-sabotage-light hover:opacity-80 relative flex items-center justify-center p-2 rounded-full transition-all"
-            aria-label="Carrito de compras"
+          <button
+            type="button"
+            (click)="toggleCartSidebar()"
+            class="text-sabotage-light hover:opacity-80 relative flex items-center justify-center p-2 rounded-full transition-all cursor-pointer"
+            aria-label="Abrir carrito de compras"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="21" r="1"></circle>
@@ -313,7 +314,7 @@ import { SearchBarComponent } from '../search-bar/search-bar.component';
                 {{ cartItemCount() }}
               </span>
             }
-          </a>
+          </button>
         </nav>
       </div>
     </header>
@@ -397,5 +398,9 @@ export class HeaderComponent implements OnInit {
 
   toggleTheme(): void {
     this.themeService.toggleTheme();
+  }
+
+  toggleCartSidebar(): void {
+    this.cartService.toggleSidebar();
   }
 }

@@ -17,11 +17,13 @@ export class CartService {
     private readonly _items = signal<HydratedCartItem[]>([]);
     private readonly _isLoading = signal(false);
     private readonly _discountCode = signal<string | null>(null);
+    private readonly _isSidebarOpen = signal(false);
 
     // Public readonly signals
     readonly items = this._items.asReadonly();
     readonly isLoading = this._isLoading.asReadonly();
     readonly discountCode = this._discountCode.asReadonly();
+    readonly isSidebarOpen = this._isSidebarOpen.asReadonly();
 
     // Computed values - prices ALWAYS come from product.price (secure)
     readonly itemCount = computed(() =>
@@ -191,6 +193,10 @@ export class CartService {
 
             // Reload cart to get hydrated items
             await this.loadCart();
+
+            // Open sidebar to show user what they added
+            this.openSidebar();
+
             return true;
         } finally {
             this._isLoading.set(false);
@@ -389,6 +395,18 @@ export class CartService {
         } catch (err) {
             console.error('Failed to store cart ID:', err);
         }
+    }
+
+    toggleSidebar(): void {
+        this._isSidebarOpen.update(v => !v);
+    }
+
+    openSidebar(): void {
+        this._isSidebarOpen.set(true);
+    }
+
+    closeSidebar(): void {
+        this._isSidebarOpen.set(false);
     }
 
     private clearStoredCartId(): void {

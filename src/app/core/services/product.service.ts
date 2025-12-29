@@ -113,7 +113,7 @@ export class ProductService {
     private readonly _categories = signal<DbCategory[]>([]);
     private readonly _loading = signal(true);
     private readonly _error = signal<string | null>(null);
-    private _initialized = false;
+    private _initPromise: Promise<void> | null = null;
 
     // Public readonly signals
     readonly products = this._products.asReadonly();
@@ -122,16 +122,20 @@ export class ProductService {
     readonly error = this._error.asReadonly();
 
     constructor() {
-        this.initializeProducts();
+        this.ensureInitialized();
     }
 
     /**
      * Initialize products - loads from Supabase if configured, otherwise uses mock data
      */
-    private async initializeProducts(): Promise<void> {
-        if (this._initialized) return;
-        this._initialized = true;
+    async ensureInitialized(): Promise<void> {
+        if (!this._initPromise) {
+            this._initPromise = this.initializeProducts();
+        }
+        return this._initPromise;
+    }
 
+    private async initializeProducts(): Promise<void> {
         this._loading.set(true);
         this._error.set(null);
 
@@ -191,8 +195,8 @@ export class ProductService {
      * Refresh products from Supabase
      */
     async refreshProducts(): Promise<void> {
-        this._initialized = false;
-        await this.initializeProducts();
+        this._initPromise = null;
+        await this.ensureInitialized();
     }
 
     /**

@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit, resource, effect, untracked } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
@@ -10,27 +11,27 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
 @Component({
     selector: 'app-product-detail',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink, ProductCardComponent],
+    imports: [RouterLink, ProductCardComponent, NgOptimizedImage],
     template: `
-        @if (loading()) {
+        @if (productResource.isLoading()) {
             <div class="min-h-screen flex items-center justify-center bg-sabotage-dark">
                 <div class="text-center">
                     <div class="w-12 h-12 border-4 border-sabotage-border border-t-sabotage-accent rounded-full animate-spin mx-auto mb-4"></div>
                     <p class="text-sabotage-muted">Cargando producto...</p>
                 </div>
             </div>
-        } @else if (product()) {
+        } @else if (productResource.value()) {
             <div class="min-h-screen bg-sabotage-dark">
                 <!-- Breadcrumb -->
                 <div class="max-w-7xl mx-auto px-4 py-4">
                     <nav class="flex items-center gap-2 text-sm text-sabotage-muted">
                         <a routerLink="/" class="hover:text-sabotage-light transition-colors">Inicio</a>
                         <span>/</span>
-                        <a [routerLink]="'/' + product()!.category" class="hover:text-sabotage-light transition-colors uppercase">
+                        <a [routerLink]="'/' + productResource.value()!.category" class="hover:text-sabotage-light transition-colors uppercase">
                             {{ categoryName() }}
                         </a>
                         <span>/</span>
-                        <span class="text-sabotage-light font-semibold">{{ product()!.name }}</span>
+                        <span class="text-sabotage-light font-semibold">{{ productResource.value()!.name }}</span>
                     </nav>
                 </div>
 
@@ -40,11 +41,13 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                         <!-- Product Images Gallery -->
                         <div class="relative" data-aos="fade-right">
                             <!-- Main Image -->
-                            <div class="aspect-square rounded-2xl overflow-hidden bg-sabotage-gray mb-4">
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-sabotage-gray mb-4 relative">
                                 <img
-                                    [src]="currentMainImage()"
-                                    [alt]="product()!.name"
-                                    class="w-full h-full object-cover transition-opacity duration-300"
+                                    [ngSrc]="currentMainImage()"
+                                    [alt]="productResource.value()!.name"
+                                    fill
+                                    priority
+                                    class="object-cover transition-opacity duration-300"
                                 />
                             </div>
 
@@ -55,7 +58,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                                         <button
                                             type="button"
                                             (click)="selectImage(i)"
-                                            class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200"
+                                            class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 relative"
                                             [class.border-blue-500]="selectedImageIndex() === i"
                                             [class.ring-2]="selectedImageIndex() === i"
                                             [class.ring-blue-500]="selectedImageIndex() === i"
@@ -64,9 +67,10 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                                             [attr.aria-label]="'Ver imagen ' + (i + 1)"
                                         >
                                             <img
-                                                [src]="image.url"
-                                                [alt]="product()!.name + ' - imagen ' + (i + 1)"
-                                                class="w-full h-full object-cover"
+                                                [ngSrc]="image.url"
+                                                [alt]="productResource.value()!.name + ' - imagen ' + (i + 1)"
+                                                fill
+                                                class="object-cover"
                                             />
                                         </button>
                                     }
@@ -84,29 +88,29 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                         <div class="flex flex-col flex-1">
                             <!-- Name -->
                             <h2 class="text-2xl md:text-3xl font-extrabold mb-4 tracking-wide">
-                                {{ product()!.name }}
+                                {{ productResource.value()!.name }}
                             </h2>
 
                             <!-- Description -->
                             <p class="text-base md:text-lg text-sabotage-muted leading-relaxed mb-5">
-                                {{ product()!.description }}
+                                {{ productResource.value()!.description }}
                             </p>
 
                             <!-- Price -->
                             <div class="text-3xl md:text-4xl font-extrabold text-sabotage-light my-5">
-                                S/ {{ product()!.price.toFixed(2) }}
+                                S/ {{ productResource.value()!.price.toFixed(2) }}
                             </div>
 
                             <!-- Options -->
                             <div class="my-6 md:my-8">
                                 <!-- Color Selector -->
-                                @if (product()!.colors.length > 1) {
+                                @if (productResource.value()!.colors.length > 1) {
                                     <div class="mb-6">
                                         <label class="block font-bold mb-3 tracking-wide text-sm">
                                             COLOR: <span class="font-normal text-sabotage-muted">{{ selectedColor()?.name }}</span>
                                         </label>
                                         <div class="flex flex-wrap gap-3">
-                                            @for (color of product()!.colors; track color.id) {
+                                            @for (color of productResource.value()!.colors; track color.id) {
                                                 <button
                                                     type="button"
                                                     (click)="selectColor(color)"
@@ -134,7 +138,7 @@ import { ProductCardComponent } from '../catalog/components/product-card/product
                                 <div class="mb-6">
                                     <label class="block font-bold mb-3 tracking-wide text-sm">TALLA:</label>
                                     <div class="flex flex-wrap gap-3">
-                                        @for (size of product()!.sizes; track size) {
+                                        @for (size of productResource.value()!.sizes; track size) {
                                             <button
                                                 type="button"
                                                 (click)="selectSize(size)"
@@ -278,8 +282,22 @@ export class ProductDetailComponent implements OnInit {
     private readonly aos = inject(AosService);
     private readonly seo = inject(SeoService);
 
-    readonly product = signal<Product | null>(null);
-    readonly loading = signal(true);
+    // Resource: automatically fetches product when route param changes
+    readonly productResource = resource<Product | null, string | null>({
+        params: () => {
+            const slug = this.route.snapshot.paramMap.get('slug');
+            return slug;
+        },
+        loader: async ({ params: slug }) => {
+            if (!slug) return null;
+            await this.productService.ensureInitialized();
+            return this.productService.getProductBySlug(slug) || null;
+        }
+    });
+
+    // Computed for ease of use (optional, but keeps template cleaner if we used signals before)
+    readonly product = computed(() => this.productResource.value());
+
     readonly selectedSize = signal<string>('');
     readonly quantity = signal(1);
     readonly isAdding = signal(false);
@@ -341,41 +359,57 @@ export class ProductDetailComponent implements OnInit {
         return category?.name || p.category.charAt(0).toUpperCase() + p.category.slice(1);
     });
 
-    async ngOnInit(): Promise<void> {
-        const slug = this.route.snapshot.paramMap.get('slug');
+    constructor() {
+        // Initial setup for default selections when product loads
+        effect(() => {
+            try {
+                const p = this.productResource.value();
+                if (p) {
+                    // Use untracked to check current state without establishing a dependency
+                    const currentColor = untracked(() => this.selectedColor());
+                    const currentSize = untracked(() => this.selectedSize());
 
-        if (slug) {
-            // Wait for products to load
-            while (this.productService.loading()) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
+                    // Check if current color is valid for this product
+                    const colorIsValid = currentColor && p.colors?.some(c => c.id === currentColor.id);
 
-            const foundProduct = this.productService.getProductBySlug(slug);
-            this.product.set(foundProduct || null);
+                    if (!colorIsValid) {
+                        // Default to the product's default color or the first one in the list
+                        const defaultColor = p.defaultColor || (p.colors && p.colors.length > 0 ? p.colors[0] : null);
+                        if (defaultColor) {
+                            this.selectedColor.set(defaultColor);
+                        }
+                    }
 
-            // Auto-select default color and first size
-            if (foundProduct) {
-                const defaultColor = foundProduct.defaultColor || foundProduct.colors[0];
-                if (defaultColor) {
-                    this.selectedColor.set(defaultColor);
+                    // Check if current size is valid
+                    const sizeIsValid = currentSize && p.sizes?.includes(currentSize);
+                    if (!sizeIsValid && p.sizes?.length > 0) {
+                        this.selectedSize.set(p.sizes[0]);
+                    }
+
+                    // Update SEO (safely)
+                    untracked(() => {
+                        try {
+                            const slug = this.route.snapshot.paramMap.get('slug') || this.route.snapshot.paramMap.get('id') || '';
+                            this.seo.updateTags({
+                                title: p.name.toUpperCase(),
+                                description: p.description,
+                                image: p.imageUrl,
+                                url: `https://sabotage.pe/producto/${slug}`,
+                                type: 'product'
+                            });
+                        } catch (e) {
+                            console.warn('Error updating SEO tags:', e);
+                        }
+                    });
                 }
-                if (foundProduct.sizes?.length) {
-                    this.selectedSize.set(foundProduct.sizes[0]);
-                }
-
-                // Update SEO
-                this.seo.updateTags({
-                    title: foundProduct.name.toUpperCase(),
-                    description: foundProduct.description,
-                    image: foundProduct.imageUrl,
-                    url: `https://sabotage.pe/producto/${slug}`,
-                    type: 'product'
-                });
+            } catch (err) {
+                console.error('Error in product initialization effect:', err);
             }
-        }
+        });
+    }
 
-        this.loading.set(false);
-        await this.aos.init();
+    ngOnInit(): void {
+        this.aos.init();
     }
 
     selectColor(color: ProductColor): void {
@@ -396,7 +430,6 @@ export class ProductDetailComponent implements OnInit {
             this.quantity.update(q => q - 1);
         }
     }
-
     increaseQuantity(): void {
         if (this.quantity() < 10) {
             this.quantity.update(q => q + 1);

@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, inject, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, input, signal, computed, inject, ChangeDetectionStrategy, effect, resource } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProductFiltersComponent } from './components/product-filters/product-filters.component';
 import { ProductGridComponent } from './components/product-grid/product-grid.component';
@@ -15,16 +15,16 @@ import { Product, FilterState, DbCategory } from '../../core/models/product.mode
   template: `
     <!-- Page Header -->
     <section class="text-center py-12 md:py-16 px-5 bg-sabotage-dark border-b-2 border-sabotage-border" data-aos="fade-down">
-      @if (loadingCategory()) {
+      @if (categoryResource.isLoading()) {
         <!-- Skeleton while loading -->
         <div class="h-10 md:h-14 w-64 md:w-96 bg-sabotage-gray/50 rounded mx-auto mb-4 animate-pulse"></div>
         <div class="h-5 md:h-6 w-48 md:w-80 bg-sabotage-gray/30 rounded mx-auto animate-pulse"></div>
       } @else {
         <h2 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-wider">
-          {{ categoryData()?.name?.toUpperCase() || title() }}
+          {{ categoryResource.value()?.name?.toUpperCase() || title() }}
         </h2>
         <p class="text-base md:text-lg text-sabotage-muted">
-          {{ categoryData()?.description || subtitle() }}
+          {{ categoryResource.value()?.description || subtitle() }}
         </p>
       }
     </section>
@@ -63,9 +63,6 @@ export class CatalogComponent {
   readonly showTypeFilter = input(true);
 
   // Category data from database
-  readonly categoryData = signal<DbCategory | null>(null);
-  readonly loadingCategory = signal(true);
-
   // State
   readonly currentFilters = signal<FilterState>({
     types: [],
@@ -75,49 +72,42 @@ export class CatalogComponent {
     priceRange: { min: 0, max: 150 }
   });
 
-  constructor() {
-    // Effect to load category when slug changes (handles initial load too)
-    effect(() => {
-      const slug = this.category();
-      if (slug) {
-        this.loadCategoryData(slug);
-      }
-    });
+  // Resource for category metadata
+  readonly categoryResource = resource<DbCategory | null, string>({
+    params: () => this.category(),
+    loader: async ({ params: slug }) => {
+      // Ensure product service is ready (which loads categories)
+      await this.productService.ensureInitialized();
 
+      // Try cache first
+      const cachedFn = this.productService.categories().find(c => c.slug === slug);
+      if (cachedFn) return cachedFn;
+
+      // Fallback fetch if not in cache (rare)
+      const categories = await this.supabase.getAll<DbCategory>('categories', {
+        filters: [{ column: 'slug', operator: 'eq', value: slug }]
+      });
+      return categories[0] || null;
+    }
+  });
+
+  constructor() {
     // Initialize AOS
     this.aos.init();
-  }
 
-  private async loadCategoryData(slug: string): Promise<void> {
-    this.loadingCategory.set(true);
-
-    try {
-      // First, try to find category in already-loaded ProductService cache
-      const cachedCategories = this.productService.categories();
-      let foundCategory = cachedCategories.find(c => c.slug === slug);
-
-      if (!foundCategory) {
-        // Not in cache - fetch from API
-        const categories = await this.supabase.getAll<DbCategory>('categories', {
-          filters: [{ column: 'slug', operator: 'eq', value: slug }]
-        });
-        if (categories.length > 0) {
-          foundCategory = categories[0];
-        }
-      }
-
-      if (foundCategory) {
-        this.categoryData.set(foundCategory);
-
-        // Update SEO
+    // Effect to update SEO when resource loads
+    effect(() => {
+      const cat = this.categoryResource.value();
+      const slug = this.category();
+      if (cat) {
         this.seo.updateTags({
-          title: foundCategory.name.toUpperCase(),
-          description: foundCategory.description || this.subtitle(),
+          title: cat.name.toUpperCase(),
+          description: cat.description || this.subtitle(),
           url: `https://sabotage.pe/${slug}`,
           type: 'website'
         });
-      } else {
-        // Fallback SEO if category db data not found but routing works (e.g. from input title)
+      } else if (!this.categoryResource.isLoading()) {
+        // Fallback SEO
         this.seo.updateTags({
           title: this.title(),
           description: this.subtitle(),
@@ -125,12 +115,10 @@ export class CatalogComponent {
           type: 'website'
         });
       }
-    } catch (error) {
-      console.warn('Could not load category data:', error);
-    } finally {
-      this.loadingCategory.set(false);
-    }
+    });
   }
+
+
 
   // Get products for current category
   private readonly categoryProducts = computed(() =>
